@@ -1,4 +1,9 @@
+
+#ifndef V_H
+#define V_H
+
 #include <math.h>
+
 
 class Vector {
 public :
@@ -9,15 +14,15 @@ public :
 		y = yval;
 		z = zval;
 	}
-public:
 	void	setX(double val) { x = val; }
 	void	setY(double val) { y = val; }
 	void	setZ(double val) { z = val; }
-	double	getX(void) { return x; }
-	double	getY(void) { return y; }
-	double  getZ(void) { return z; }
+	float	getX(void) { return x; }
+	float	getY(void) { return y; }
+	float   getZ(void) { return z; }
 
 public:
+	
 	Vector operator +(Vector v) {
 		Vector ret = (*this);
 		ret.x += v.x;
@@ -44,7 +49,14 @@ public:
 
 		return ret;
 	}
+	
+	void operator=(Vector &v)
+	{
+		x = v.x;
+		y = v.y;
+		z = v.z;
 
+	}
 	friend Vector operator *(Vector v, float val) {
 		v.x *= val;
 		v.y *= val;
@@ -111,3 +123,4 @@ public:
 		z /= w;
 	}
 };
+#endif

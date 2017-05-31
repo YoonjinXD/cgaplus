@@ -10,6 +10,8 @@
 #include <gl/glut.h>
 #include "Matrix.h"
 #include "WaveFrontOBJ.h"
+#include "particle.h"
+
 
 using namespace std;
 
@@ -29,6 +31,7 @@ vector<Matrix> wld2cam, cam2wld;
 
 Matrix ctn2wld;
 WaveFrontOBJ* ctn;
+mass_cloth *cloth;
 
 unsigned floorTexID;
 
@@ -164,15 +167,25 @@ void drawCamera()
 	}
 }
 
-
-
 void InitCtn() {
-	ctn = new WaveFrontOBJ("cow_pa4.obj");
+	ctn = new WaveFrontOBJ("test_square.obj");
+	cloth = new mass_cloth();
+	cloth->dx = 0.1;
+	cloth->dy = 0.1;
+	cloth->dz = 0.1;
+	cloth->grid_n = 40;
+	cloth->grid_m = 40;
+	cloth->grid_l = 40;
+	cloth->dist_coef = 3000;
+	cloth->shear_coef = 100;
 
+	cloth->iteration_n = 10;
+
+	cloth->init(ctn);
 	glPushMatrix();											// Push the current matrix of GL into stack.
 	glLoadIdentity();										// Set the GL matrix Identity matrix.
-	glTranslatef(0, -ctn->bbmin.pos.y, -8);					// Set the location of cow.
-	glRotatef(-90, 0, 1, 0);								// Set the direction of cow. These information are stored in the matrix of GL.
+	glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
+															// Set the direction of cow. These information are stored in the matrix of GL.
 	glGetFloatv(GL_MODELVIEW_MATRIX, ctn2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
 	glPopMatrix();											// Pop the matrix on stack to GL.
 
@@ -181,11 +194,14 @@ void InitCtn() {
 void drawCtn()
 {
 	glPushMatrix();											// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
-
 															// The information about location of cow to be drawn is stored in cow2wld matrix.
 															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 	glMultMatrixf(ctn2wld.matrix());
-
+	cloth->sync(ctn);
+	for (int i = 0; i < ctn->faces.size(); i++) {
+		ctn->faces[i].normal = ctn->faceNormal(ctn->verts[ctn->vIndex[ctn->faces[i].vIndexStart]], ctn->verts[ctn->vIndex[ctn->faces[i].vIndexStart + 1]], ctn->verts[ctn->vIndex[ctn->faces[i].vIndexStart + 2]]);
+	}
+	ctn->vertexNormal();
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
 		drawAxis(5);										// Draw x, y, and z axis.
@@ -202,7 +218,8 @@ void drawCtn()
 	/*******************************************************************/
 	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
 	/*******************************************************************/
-	
+	//ctn->Draw_FN();
+	//ctn->Draw_VN();
 
 	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
 }
@@ -316,53 +333,91 @@ void Lighting()
 	//2. 광원의 위치를 구(sphere)로 표현하십시오.
 	//3. Directional light / Spotlight의 경우 빛의 진행방향을 선분으로 표현하십시오.
 	/*******************************************************************/
-	if (point) { //point
-		glEnable(GL_LIGHT1); //light1으로 설정된 pointlight를 enable
-		float light_pos[] = { 4.0f, 4.0f, 3.0f, 1.0f};
-		float light_ambient[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-		float light_diffuse[] = { 1.0f, 1.0f, 0.0, 0.0 };
-		float light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	if (point) { // red color point light
+		float light_pos[] = { 10.0, 10.0, -10.0, 1.0 }; // point light position
+		float light_ambient[] = { 0.3, 0.0, 0.0, 1.0 }; // point light ambient
+		float light_diffuse[] = { 0.5, 0.0, 0.0, 1.0 }; // point light diffuse
+		float light_specular[] = { 1.0, 0.0, 0.0, 1.0 }; // point light specular
 		glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
-		glLightfv(GL_LIGHT1, GL_POSITION, light_pos);
 		glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
+		glLightfv(GL_LIGHT1, GL_POSITION, light_pos);
+		glEnable(GL_LIGHT1); // on point light
+		glPushMatrix();
+		float emission[] = { 1.0, 0.0, 0.0, 1.0 };// sphere emission
+		float emission2[] = { 0.0, 0.0, 0.0, 0.0 };// emission 초기화용 배열
+		glMaterialfv(GL_FRONT, GL_EMISSION, emission); // sphere emission setting
+		glTranslatef(light_pos[0], light_pos[1], light_pos[2]);
+		glutSolidSphere(1.0, 5, 5); // draw sphere
+		glMaterialfv(GL_FRONT, GL_EMISSION, emission2);// emission 초기화
 
-		glMaterialf(GL_FRONT, GL_EMISSION, 1000);
-		glTranslatef(4.0f, 4.0f, 3.0f);
-		glutSolidSphere(1.0, 50.0f, 15.0f);
-		glTranslatef(-4.0f, -4.0f, -3.0f);
+		glPopMatrix();
 	}
-	if (direc) {//directional
-		glEnable(GL_LIGHT2);//light2으로 설정된 directlight를 enable
-		float light_pos[] = { 10.0, 10.0, 0.0, 0.0 };
-		float light_ambient[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-		float light_diffuse[] = { 1.0f, 0.0, 1.0f, 0.0 };
-		float light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-		glLightfv(GL_LIGHT2, GL_AMBIENT, light_ambient);
+	else {
+		glDisable(GL_LIGHT1);// point light off
+	}
+	if (direc) {// green color directional light
+		float light_pos[] = { -10.0, 10.0, -10.0, 0.0 };// directional light position
+		float light_dir[] = { -1.0, 1.0, -1.0 }; //directional light direction
+		float light_ambient[] = { 0.0, 0.3, 0.0, 1.0 };// directional light ambient
+		float light_diffuse[] = { 0.0, 0.5, 0.0, 1.0 };// directional light diffuse
+		float light_specular[] = { 0.0, 1.0, 0.0, 1.0 };// directional light specular
+		glLightfv(GL_LIGHT2, GL_AMBIENT, light_ambient); //setting light
 		glLightfv(GL_LIGHT2, GL_DIFFUSE, light_diffuse);
-		glLightfv(GL_LIGHT2, GL_POSITION, light_pos);
 		glLightfv(GL_LIGHT2, GL_SPECULAR, light_specular);
+		glLightfv(GL_LIGHT2, GL_POSITION, light_pos);
+		glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, light_dir);
+		glEnable(GL_LIGHT2); // enable directional light
+		glPushMatrix();
+		float emission[] = { 0.0, 1.0, 0.0, 1.0 };
+		float emission2[] = { 0.0, 0.0, 0.0, 0.0 };
+		glMaterialfv(GL_FRONT, GL_EMISSION, emission);
+		glTranslatef(light_pos[0], light_pos[1], light_pos[2]);
+		glutSolidSphere(1.0, 5, 5);
+		glMaterialfv(GL_FRONT, GL_EMISSION, emission2);
+		glBegin(GL_LINES);			// Start drawing lines.
+		glColor3d(0, 1, 0);			// line color is red.
+		glVertex3d(0, 0, 0);
+		glVertex3d(-2.0*light_dir[0], -2.0*light_dir[1], -2.0*light_dir[2]);
+		glEnd();
+		glPopMatrix();
 	}
-	if (spot) {//spot
-		glEnable(GL_LIGHT3);//light3으로 설정된 spotlight를 enable
-		float light_pos[] = { 0.0, 8.0f, 5.0f, 1.0f };
-		float light_dir[] = { 0.0f, -0.5f, 0.0f };
-		float light_ambient[] = { 0.3f, 0.3f, 0.3f, 1.0f };
-		float light_diffuse[] = { 0.0, 1.0f, 1.0f, 0.0 };
-		float light_specular[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	else {
+		glDisable(GL_LIGHT2);//directional light off
+	}
+	if (spot) { // green and blue color spot light
+		float light_pos[] = { 10.0, 5.0, 0.0, 1.0 }; // light position
+		float light_dir[] = { -1.0, 0.0, 0.0 }; //light direction
+		float light_ambient[] = { 0.0, 0.5, 0.5, 1.0 };
+		float light_diffuse[] = { 0.0, 0.5, 0.5, 1.0 };
+		float light_specular[] = { 0.0, 1.0, 1.0, 1.0 };
+		glLightfv(GL_LIGHT3, GL_POSITION, light_pos);
 		glLightfv(GL_LIGHT3, GL_AMBIENT, light_ambient);
 		glLightfv(GL_LIGHT3, GL_DIFFUSE, light_diffuse);
-		glLightfv(GL_LIGHT3, GL_POSITION, light_pos);
 		glLightfv(GL_LIGHT3, GL_SPECULAR, light_specular);
+		glLightf(GL_LIGHT3, GL_SPOT_CUTOFF, 50.0);
+		glLightf(GL_LIGHT3, GL_SPOT_EXPONENT, 50.0);
 		glLightfv(GL_LIGHT3, GL_SPOT_DIRECTION, light_dir);
-		glLightf(GL_LIGHT3, GL_SPOT_CUTOFF, 40.0f);
-		glLightf(GL_LIGHT3, GL_SPOT_EXPONENT, 10.0f);
-
-		glMaterialf(GL_FRONT, GL_EMISSION, 1000);
-		glTranslatef(0.0, 8.0f, 5.0f);
-		glutSolidSphere(1.0, 50.0f, 15.0f);
-		glTranslatef(0.0, -18.0f, -5.0f);
-	}	
+		glLightf(GL_LIGHT3, GL_CONSTANT_ATTENUATION, 0.0);// set attenuation as linear
+		glLightf(GL_LIGHT3, GL_LINEAR_ATTENUATION, 0.1);
+		glEnable(GL_LIGHT3);
+		glPushMatrix();
+		float emission[] = { 0.0, 1.0, 1.0, 1.0 };
+		float emission2[] = { 0.0, 0.0, 0.0, 0.0 };
+		glMaterialfv(GL_FRONT, GL_EMISSION, emission);
+		glTranslatef(light_pos[0], light_pos[1], light_pos[2]);
+		glutSolidSphere(1.0, 5, 5);
+		glMaterialfv(GL_FRONT, GL_EMISSION, emission2);
+		glBegin(GL_LINES);			// Start drawing lines.
+		glColor3d(0, 1, 1);			// line color is green and blue.
+		glVertex3d(0, 0, 0);
+		glVertex3d(2.0*light_dir[0], 2.0*light_dir[1], 2.0*light_dir[2]);
+		glEnd();
+		glPopMatrix();
+	}
+	else {
+		glDisable(GL_LIGHT3); // spotlight off
+	}
 }
 
 
@@ -389,14 +444,9 @@ void display()
 	else
 		glShadeModel(GL_SMOOTH);
 
+	drawCtn();
 	drawCamera();													// and draw all of them.
 	drawFloor();													// Draw floor.
-
-	glMaterialf(GL_FRONT, GL_SHININESS, 1000);
-	glTranslatef(0.0, 4.0f, 0.0f);
-	glutSolidSphere(4.0f, 100.0f, 100.0f);
-	glTranslatef(0.0, 0.0f, -2.0f);
-
 	
 	Lighting();
 
@@ -452,7 +502,7 @@ void initialize()
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 	glEnable(GL_LIGHT0);
 	
-	
+	InitCtn();
 	InitCamera();
 }
 
@@ -508,19 +558,8 @@ void onMouseButton(int button, int state, int x, int y)
 void onMouseDrag(int x, int y)
 {	
 	y = height - y - 1;
-	if (sp_mode == 0) {//modeling
-		dist_x = (x - oldX) / 10.0;
-		dist_y = (y - oldY) / 10.0;
-		printf("in drag (%d, %d)\n", dist_x, dist_y);
-		dist = (dist_x + dist_y) / 2;
-		translate();
-	}
-	else if (sp_mode == 1) {//viewing
-		dist_x = (x - oldX) / 15.0;
-		dist_y = (y - oldY) / 15.0;
-		printf("in drag (%d, %d)\n", dist_x, dist_y);
-		dist = (dist_x + dist_y);
-	}
+	cloth->add_force(Vector ((float)(x - oldX), (float)(y - oldY), 0));
+	printf("in drag (%d, %d)\n", x - oldX, y - oldY);
 	oldX = x;
 	oldY = y;
 	glutPostRedisplay();
@@ -637,6 +676,11 @@ void translate(){
 
 
 void idle() {
+	Vector gravity(0.0, -8.0, 0.0);
+	float dt = 0.01;
+
+	//	spring.integrate(dt, gravity);
+	cloth->integrate(dt, gravity);
 	glutPostRedisplay();
 }
 

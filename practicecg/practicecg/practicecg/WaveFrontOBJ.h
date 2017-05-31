@@ -4,8 +4,8 @@
 #include <vector>
 #include <stdlib.h>
 #include <math.h>
-
 #include "Vector.h"
+
 using std::vector;
 
 //==============================================================================
@@ -75,7 +75,6 @@ public:
 	void Draw_FN();
 	void Draw_VN();
 
-protected:
 	Vector faceNormal(Vertex& v0, Vertex& v1, Vertex& v2);
 	void vertexNormal();
 	void computeBoundingBox();

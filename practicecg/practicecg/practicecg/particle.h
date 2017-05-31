@@ -3,6 +3,9 @@
 #include <vector>
 #include <algorithm>
 #include "Vector.h"
+#include "WaveFrontOBJ.h"
+
+using namespace std;
 
 class particle
 {
@@ -45,22 +48,24 @@ public:
 		if (!fixed)
 		{
 			//air friction
-			force += ((velocity * (air_friction)) * (-1));
+			force = force + ((velocity * (air_friction)) * (-1.0));
 
-			force += gravity * mass;
+			force = force + (gravity * mass);
 			acceleration = force / mass;
-			velocity += acceleration*dt;
-			position += velocity*dt;
+			velocity = velocity + (acceleration*dt);
+			position = position + (velocity*dt);
 		}
-		force.x = force.y = force.z = 0.0;
+		force.x = 0.0;
+		force.y = 0.0;
+		force.z = 0.0;
 	}
 
 	void add_force(Vector ext_force)
 	{
-		force += ext_force;
+		force = force + ext_force;
+		
 	}
 
-	void draw();
 };
 
 
@@ -134,9 +139,6 @@ public:
 		p2->force += ext_force;
 	}
 
-
-	void draw();
-
 };
 
 class edge {
@@ -171,8 +173,8 @@ public:
 	std::vector<particle *> p;
 	std::vector<mass_spring *> e;
 
-	int grid_n, grid_m;
-	double dx, dy;
+	int grid_n, grid_m, grid_l;
+	double dx, dy, dz;
 	double shear_coef;
 	double dist_coef;
 	double bending_coef;
@@ -180,13 +182,15 @@ public:
 
 
 	double		reflect_coef;
-	double		badak = -2.0;
+	double		badak = -0.2;
 	mass_cloth()
 	{
 		grid_n = 20;
 		grid_m = 20;
+		grid_l = 20;
 		dx = 0.1;
 		dy = 0.1;
+		dz = 0.1;
 
 		shear_coef = 100.0;
 		dist_coef = 100.0;
@@ -198,116 +202,52 @@ public:
 	}
 	~mass_cloth()
 	{
-		//asdfasdf
 		for (auto &ep : p)delete ep;
 		for (auto &ep : e)delete ep;
 		p.clear();
 		e.clear();
 	}
-	void init()
+	void init(WaveFrontOBJ* ctn)
 	{
 		int i, j, k;
 		// init particle
-		for (i = 0; i <= grid_n; i++)
-			for (j = 0; j <= grid_m; j++)
-			{
-				particle *xp = new particle(Vector(i*dx - dx*grid_n / 2, j*dy - dy*grid_m / 2));
-				if (j == grid_m)
-					xp->fixed = true;
-				p.push_back(xp);
+		for (i = 0; i < ctn->verts.size(); i++) {
+			particle *tmp = new particle(ctn->verts[i].pos);
+			if (i < 20) {
+				tmp->fixed = true;
 			}
-
+			p.push_back(tmp);
+			
+		}
 		// init_spring
-		for (i = 0; i <= grid_n; i++)
-		{
-			for (j = 0; j <= grid_m; j++)
-			{
-				int pid, qid, rid, sid;
-				pid = (i + 0)*(grid_m + 1) + (j + 0);
-				qid = (i + 0)*(grid_m + 1) + (j + 1);
-				rid = (i + 1)*(grid_m + 1) + (j + 0);
-				sid = (i + 1)*(grid_m + 1) + (j + 1);
-				if (j + 1 <= grid_m)
-				{
-					mass_spring *sp = new mass_spring(p[pid], p[qid]);
-					sp->spring_coef = dist_coef;
-					e.push_back(sp);
-				}
-				if (i + 1 <= grid_n)
-				{
-					mass_spring *sp = new mass_spring(p[pid], p[rid]);
-					sp->spring_coef = dist_coef;
-					e.push_back(sp);
-				}
-				if (i + 1 <= grid_n && j + 1 <= grid_m)
-				{
-					mass_spring *sp = new mass_spring(p[pid], p[sid]);
-					sp->spring_coef = shear_coef;
-					e.push_back(sp);
-					sp = new mass_spring(p[qid], p[rid]);
-					sp->spring_coef = shear_coef;
-					e.push_back(sp);
-				}
-			}
-		}
-	}
-
-	void init_by_file(char *filename)
-	{
-		FILE *fp = fopen(filename, "rt");
-		if (fp == NULL)
-		{
-			printf("hell world!\n");
-			return;
-		}
-
-		using namespace std;
-		vector<Vector> v;
 		vector<edge> ed;
-		char line[257];
-		char command[10];
-		while (fgets(line, 256, fp))
-		{
-			command[0] = 0;
-			sscanf(line, "%s", command);
-			if (strcmp(command, "v") == 0)
-			{
-				double x, y, z;
-				sscanf(line, "v %lf %lf %lf", &x, &y, &z);
-				v.push_back(Vector(x, y));
-			}
-			else if (strcmp(command, "f") == 0)
-			{
-				int i, j, k;
-				sscanf(line, "f %d %d %d", &i, &j, &k);
-				i--; j--; k--;
-				ed.push_back(edge(i, j));
-				ed.push_back(edge(k, j));
-				ed.push_back(edge(i, k));
-			}
+		for (i = 0; i < ctn->faces.size(); i++) {
+			j = ctn->faces[i].vIndexStart;
+			ed.push_back(edge(ctn->vIndex[j], ctn->vIndex[j + 1]));
+			ed.push_back(edge(ctn->vIndex[j + 1], ctn->vIndex[j + 2]));
+			ed.push_back(edge(ctn->vIndex[j + 2], ctn->vIndex[j]));
 		}
-
 		sort(ed.begin(), ed.end());
 		ed.erase(unique(ed.begin(), ed.end()), ed.end());
 
-		// inil_particle
-		for (int i = 0; i < v.size(); i++)
-		{
-			particle *xp = new particle(v[i]);
-			if (i < 20) xp->fixed = true;
-			p.push_back(xp);
-		}
 		for (int i = 0; i < ed.size(); i++)
 		{
 			mass_spring *sp = new mass_spring(p[ed[i].p1], p[ed[i].p2]);
 			sp->spring_coef = dist_coef;
 			e.push_back(sp);
+			
 		}
 
-		fclose(fp);
 	}
-
-
+	void sync(WaveFrontOBJ* ctn) {
+		int i;
+		// init particle
+		for (i = 0; i < ctn->verts.size(); i++) {
+			ctn->verts[i].pos = p[i]->position;
+		}
+		//printf("%f, %f, %f", ctn->verts[31].pos.x, ctn->verts[31].pos.y, ctn->verts[31].pos.z);
+		//printf("%f, %f, %f\n", p[31]->position.x, p[31]->position.y, p[31]->position.z);
+	}
 	void add_force(Vector ext_force)
 	{
 		for (int i = 0; i < p.size(); i++)
@@ -318,6 +258,7 @@ public:
 
 	void integrate(double dt, Vector gravity)
 	{
+
 		for (int i = 0; i < p.size(); i++)
 		{
 			p[i]->add_force(gravity);
@@ -326,13 +267,12 @@ public:
 		{
 			for (int i = 0; i < e.size(); i++)
 			{
-				auto ep = e[i];
-				ep->internal_force(dt);
+				e[i]->internal_force(dt);
+				
 			}
 			for (int i = 0; i < p.size(); i++)
 			{
-				auto ep = p[i];
-				ep->integrate(dt, Vector(0, 0));
+				p[i]->integrate(dt, Vector(0, 0, 0));
 			}
 		}
 		collisionCheck();
@@ -340,15 +280,14 @@ public:
 
 	void collisionCheck()
 	{
-		for (auto &ep : p)
+		for (int i = 0; i < p.size(); i++)
 		{
-			if (ep->position.y < badak)
+			if (p[i]->position.y < badak)
 			{
-				ep->position.y = badak;
-				ep->velocity.y *= -reflect_coef;
+				p[i]->position.y = badak;
+				p[i]->velocity.y *= -reflect_coef;
 			}
 		}
 	}
 
-	void draw();
 };

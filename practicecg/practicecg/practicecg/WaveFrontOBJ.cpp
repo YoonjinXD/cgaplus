@@ -5,11 +5,10 @@
 #include <iostream>
 #include <fstream>
 #include <GL/glut.h>
-using namespace std;
-
 #include "WaveFrontOBJ.h" 
+#include "Vector.h"
 
-
+using namespace std;
 //------------------------------------------------------------------------------
 // 객체를 생성하면서 filename 에서 object 를 읽는다
 // Construct object and read object from filename
