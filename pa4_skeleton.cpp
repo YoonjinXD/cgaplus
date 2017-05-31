@@ -8,6 +8,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include <sys/types.h>
+<<<<<<< HEAD
+=======
+#include <glut.h>
+>>>>>>> b1c7a5a6bce82b40bf96e9ecb0d2da942effcd06
 #include "Matrix.h"
 #include "WaveFrontOBJ.h"
 using namespace std;
