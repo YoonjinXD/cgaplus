@@ -1,11 +1,16 @@
-#include <iostream>
+#include<Windows.h>
+#include<iostream>
+#include<gl/glew.h>
+#include<gl/glut.h>
+#include<gl/GL.h>
+#include<gl/glu.h>
 #include <fstream>
 #include <stdlib.h>
 #include <math.h>
 #include <sys/types.h>
-#include <GL/glut.h>
 #include "Matrix.h"
 #include "WaveFrontOBJ.h"
+using namespace std;
 
 // 'cameras' stores infomation of 5 cameras.
 float cameras[5][9] =
@@ -39,7 +44,6 @@ bool picking = false;
 /*******************************************************************/
 float distance_x; //x축 마우스 드래그 정도
 float distance_y; //y축 마우스 드래그 정도
-float distance; //마우스 드래그 정도를 계산한 값 저장
 int axis = 0; //현재 선택된 축을 저장. 0,1,2 순서대로 x,y,z
 bool spin = false; //rotate의 on/off를 결정해주는 변수.
 int sp_mode = 0; //space mode. 현재 선택된 mode가 viewing인지 modeling인지 저장. 초기값은 modeling space
@@ -465,14 +469,12 @@ void onMouseDrag(int x, int y)
 		distance_x = (x - oldX) / 10.0;
 		distance_y = (y - oldY) / 10.0;
 		printf("in drag (%d, %d)\n", distance_x, distance_y);
-		distance = (distance_x + distance_y) / 2;
 		translate();
 	}
 	else if (sp_mode == 1) {//viewing
 		distance_x = (x - oldX) / 15.0;
 		distance_y = (y - oldY) / 15.0;
 		printf("in drag (%d, %d)\n", distance_x, distance_y);
-		distance = (distance_x + distance_y);
 	}
 	oldX = x;
 	oldY = y;
@@ -601,6 +603,16 @@ void idle() {
 //------------------------------------------------------------------------------
 void main(int argc, char* argv[])
 {
+	glewExperimental = GL_TRUE;
+	GLenum err = glewInit();
+
+	if (GLEW_OK != err) {
+		printf("error\n");
+		cerr << glewGetErrorString(err) << endl;
+	}
+	else
+		printf("good~~~~~\n");
+
 	width = 800;
 	height = 600;
 	frame = 0;

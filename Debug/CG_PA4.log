@@ -1,0 +1,9 @@
+﻿  pa4_skeleton.cpp
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\termproject\pa4_skeleton.cpp(406): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\termproject\pa4_skeleton.cpp(407): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\termproject\pa4_skeleton.cpp(471): warning C4477: 'printf' : 서식 문자열 '%d'에 'int' 형식의 인수가 필요하지만 variadic 인수 1의 형식이 'double'입니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\termproject\pa4_skeleton.cpp(471): warning C4477: 'printf' : 서식 문자열 '%d'에 'int' 형식의 인수가 필요하지만 variadic 인수 2의 형식이 'double'입니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\termproject\pa4_skeleton.cpp(477): warning C4477: 'printf' : 서식 문자열 '%d'에 'int' 형식의 인수가 필요하지만 variadic 인수 1의 형식이 'double'입니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\termproject\pa4_skeleton.cpp(477): warning C4477: 'printf' : 서식 문자열 '%d'에 'int' 형식의 인수가 필요하지만 variadic 인수 2의 형식이 'double'입니다.
+  CG_PA4.vcxproj -> C:\Users\samsung\Desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\TermProject\Debug\CG_PA4.exe
+  CG_PA4.vcxproj -> C:\Users\samsung\Desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\TermProject\Debug\CG_PA4.pdb (Partial PDB)
