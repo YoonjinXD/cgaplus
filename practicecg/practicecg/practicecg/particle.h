@@ -174,7 +174,6 @@ public:
 	std::vector<mass_spring *> e;
 	std::vector<particle *> fp;
 
-	int grid_n, grid_m, grid_l;
 	double dx, dy, dz;
 	double shear_coef;
 	double dist_coef;
@@ -186,9 +185,7 @@ public:
 	double		badak = -0.2;
 	mass_cloth()
 	{
-		grid_n = 20;
-		grid_m = 20;
-		grid_l = 20;
+		
 		dx = 0.1;
 		dy = 0.1;
 		dz = 0.1;
@@ -210,13 +207,18 @@ public:
 	}
 	void init(WaveFrontOBJ* ctn)
 	{
-		int i, j, k;
+		int i, j = 0;
 		// init particle
 		for (i = 0; i < ctn->verts.size(); i++) {
 			particle *tmp = new particle(ctn->verts[i].pos);
 			if (abs(ctn->bbmax.pos.y - ctn->verts[i].pos.y) < 0.1 ) {
-				tmp->fixed = true;
-				fp.push_back(tmp);
+				
+				if (j % 3 == 0) {
+					tmp->fixed = true;
+					fp.push_back(tmp);
+				}
+				j++;
+				
 			}
 			p.push_back(tmp);
 		}
@@ -234,9 +236,9 @@ public:
 		for (int i = 0; i < ed.size(); i++)
 		{
 			mass_spring *sp = new mass_spring(p[ed[i].p1], p[ed[i].p2]);
-			sp->spring_coef = dist_coef;
+			sp->spring_coef = shear_coef;
 			if (i % 3 == 0) {
-				sp->spring_coef = shear_coef;
+				sp->spring_coef = dist_coef;
 			}
 			e.push_back(sp);
 			

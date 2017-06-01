@@ -11,8 +11,13 @@
 #include "Matrix.h"
 #include "WaveFrontOBJ.h"
 #include "particle.h"
+#include "ObjLoader.h"
+
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 
+#define L 100
 using namespace std;
 
 // 'cameras' stores infomation of 5 cameras.
@@ -32,6 +37,7 @@ vector<Matrix> wld2cam, cam2wld;
 Matrix ctn2wld;
 WaveFrontOBJ* ctn;
 mass_cloth *cloth;
+model myLoader;
 
 GLuint texbox[6];
 
@@ -84,9 +90,6 @@ int unmunge(float r, float g, float b)
 {
 	return (int(r) + (int(g) << 8) + (int(b) << 16));
 }
-
-
-
 
 
 /*********************************************************************************
@@ -169,19 +172,45 @@ void drawCamera()
 	}
 }
 
+void moveCam(int num) {
+	glPushMatrix();
+	glLoadIdentity();
+	glMultMatrixf(wld2cam[cameraIndex-1].matrix());
+	float Px[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 1,0,0,0 } };
+	float Py[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,1,0,0 } };
+	float Pz[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,1,0 } };
+	float Mx[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ -1,0,0,0 } };
+	float My[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,-1,0,0 } };
+	float Mz[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,-1,0 } };
+
+	switch (num) {
+	case 1:
+		cam2wld[cameraIndex - 1].set(cam2wld[cameraIndex - 1].add(Px).m); break;
+	case 2:
+		cam2wld[cameraIndex - 1].set(cam2wld[cameraIndex - 1].add(Mx).m); break;
+	case 3:
+		glTranslatef(0.0, 0.1, 0.0); break;
+	case 4:
+		glTranslatef(0.0, -0.1, 0.0); break;
+	case 5:
+		glTranslatef(0.0, 0.0, 0.1); break;
+	case 6:
+		glTranslatef(0.0, 0.0, -0.1); break;
+	default: break;
+	}
+
+	glPopMatrix();
+	glutPostRedisplay();
+}
+
 void InitCtn() {
-	ctn = new WaveFrontOBJ("curtain3.obj");
+	ctn = new WaveFrontOBJ("2.obj");
 	cloth = new mass_cloth();
-	cloth->dx = 0.1;
-	cloth->dy = 0.1;
-	cloth->dz = 0.1;
-	cloth->grid_n = 40;
-	cloth->grid_m = 40;
-	cloth->grid_l = 40;
-	cloth->dist_coef = 500;
+
+	cloth->dist_coef = 300;
 	cloth->shear_coef = 100;
 
-	cloth->iteration_n = 10;
+	cloth->iteration_n = 6;
 
 	cloth->init(ctn);
 	glPushMatrix();											// Push the current matrix of GL into stack.
@@ -422,10 +451,6 @@ void Lighting()
 	}
 }
 
-
-
-
-
 /*********************************************************************************
 * Call this part whenever display events are needed.
 * Display events are called in case of re-rendering by OS. ex) screen movement, screen maximization, etc.
@@ -449,7 +474,7 @@ void display()
 	drawCtn();
 	drawCamera();													// and draw all of them.
 	drawFloor();													// Draw floor.
-	
+	myLoader.draw();
 	Lighting();
 
 	glFlush();
@@ -506,6 +531,8 @@ void initialize()
 	
 	InitCtn();
 	InitCamera();
+	myLoader.Load("house_plant.obj", "house_plant.mtl");
+	
 }
 
 
@@ -560,7 +587,12 @@ void onMouseButton(int button, int state, int x, int y)
 void onMouseDrag(int x, int y)
 {	
 	y = height - y - 1;
-	cloth->add_force(Vector ((float)(x - oldX), (float)(y - oldY), 0));
+	
+	float moveX = (x - oldX)/2.0;
+	float moveY = (y - oldY)/2.0;
+	float move[3] = { (moveX * cam2wld[cameraIndex].m[0][0] + moveY * cam2wld[cameraIndex].m[1][0]), (moveX * cam2wld[cameraIndex].m[0][1] + moveY * cam2wld[cameraIndex].m[1][1]), (moveX * cam2wld[cameraIndex].m[0][2] + moveY * cam2wld[cameraIndex].m[1][2]) };
+
+	cloth->add_force(Vector(move[0], move[1], move[2]));
 	printf("in drag (%d, %d)\n", x - oldX, y - oldY);
 	oldX = x;
 	oldY = y;
@@ -584,27 +616,23 @@ void onKeyPress(unsigned char key, int x, int y)
 	/*******************************************************************/
 	//(PA #2,#3)  수행한 내용 추가
 	/*******************************************************************/
-	if (key == 's') {
-		shademodel = !shademodel;
+	if (key == 'w') {
+		moveCam(1);
 	}
-	else if (key == 'm') { //modeling space
-		sp_mode = 0;
+	else if (key == 's') {
+		moveCam(2);
 	}
-	else if (key == 'v') { //viewing space
-		sp_mode = 1;
+	else if (key == 'a') {
+		moveCam(3);
 	}
-	else if (key == 'x') { //x축
-		axis = 0;
+	else if (key == 'd') {
+		moveCam(4);
 	}
-	else if (key == 'y') { //y축
-		axis = 1;
+	else if (key == 'q') {
+		moveCam(5);
 	}
-	else if (key == 'z') { //z축
-		axis = 2;
-	}
-	else if (key == 'r') { //rotate 상태 on/off
-		if (spin == true) spin = false;
-		else spin = true;
+	else if (key == 'e') {
+		moveCam(6);
 	}
 	else if (key == 'p') { //picking 상태 on
 		picking = true;
