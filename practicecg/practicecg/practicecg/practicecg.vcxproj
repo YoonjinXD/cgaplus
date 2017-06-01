@@ -122,7 +122,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="pa4_skeleton.cpp" />
+    <ClCompile Include="source.cpp" />
     <ClCompile Include="WaveFrontOBJ.cpp" />
   </ItemGroup>
   <ItemGroup>
