@@ -11,10 +11,15 @@
 #include "Matrix.h"
 #include "WaveFrontOBJ.h"
 #include "particle.h"
+
+#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 
 using namespace std;
+
+// texture mapping
+GLuint photo;
 
 // 'cameras' stores infomation of 5 cameras.
 float cameras[5][9] =
@@ -168,14 +173,15 @@ void drawCamera()
 	}
 }
 
-GLuint loadTexture(char *texfile) {
+GLuint LoadTexture(char *texfile) {
 	GLuint texture = NULL;
 	glGenTextures(1, &texture);
 
 	//이미지 로드하고
 	FILE *fp = fopen(texfile, "rb");
 	if (!fp) {
-		printf("ERROR : No %s.\n fail to bind %d\n", texfile, texture);  return false;
+		printf("ERROR : No %s.\n fail to bind %d\n", texfile, texture);
+		return false;
 	}
 
 	int width, height, channel;
@@ -191,7 +197,6 @@ GLuint loadTexture(char *texfile) {
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_MODULATE);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	stbi_image_free(image);
 
 	return texture;
@@ -467,6 +472,9 @@ void display()
 	else
 		glClearColor(0, 0, 0, 1);									// When the backbuffer mode, clear color is set to black
 
+	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_DEPTH_TEST);
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);				// Clear the screen
 
 	if (shademodel)
@@ -474,7 +482,19 @@ void display()
 	else
 		glShadeModel(GL_SMOOTH);
 
-	drawCtn();
+	glBindTexture(GL_TEXTURE_2D, photo);
+	glBegin(GL_QUADS);
+		glTexCoord2f(0.0, 1 - 1.0);
+		glVertex3f(0, 10,10);
+		glTexCoord2f(0.0, 1 - 0.0);
+		glVertex3f(0, 0, 0);
+		glTexCoord2f(1.0, 1 - 0.0);
+		glVertex3f(0, 0, 10);
+		glTexCoord2f(1.0, 1 - 1.0);
+		glVertex3f(0, 10, 20);
+	glEnd();
+
+//	drawCtn();
 	drawCamera();													// and draw all of them.
 	drawFloor();													// Draw floor.
 
@@ -532,7 +552,12 @@ void initialize()
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 	glEnable(GL_LIGHT0);
 
-	InitCtn();
+	// Texture Mapping
+	photo = LoadTexture("Mario Mushroom.tga");
+
+
+
+//	InitCtn();
 	InitCamera();
 }
 
@@ -643,9 +668,6 @@ void onKeyPress(unsigned char key, int x, int y)
 	else if (key == 'n') {//Draw Vertex Normal
 		drawN = !drawN;
 	}
-	else { //잘못된 버튼을 눌렀을 때 에러 메세지
-		printf("Error: Pressing key is wrong");
-	}
 
 	glutPostRedisplay();
 }
@@ -710,7 +732,7 @@ void idle() {
 	float dt = 0.01;
 
 	//	spring.integrate(dt, gravity);
-	cloth->integrate(dt, gravity);
+//	cloth->integrate(dt, gravity);
 	glutPostRedisplay();
 }
 
@@ -722,11 +744,11 @@ void main(int argc, char* argv[])
 	height = 600;
 	frame = 0;
 	glutInit(&argc, argv); // Initialize openGL.
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);	// Initialize display mode. This project will use float buffer and RGB color.
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);	// Initialize display mode. This project will use float buffer and RGB color.
 	glutInitWindowSize(width, height);				// Initialize window size.
 	glutInitWindowPosition(100, 100);				// Initialize window coordinate.
-	glutCreateWindow("PA4");
-
+	glutCreateWindow("Texture Mapping");
+	
 	glutDisplayFunc(display);						// Register display function to call that when drawing screen event is needed.
 	glutReshapeFunc(reshape);						// Register reshape function to call that when size of the window is changed.
 	glutKeyboardFunc(onKeyPress);					// Register onKeyPress function to call that when user presses the keyboard.
@@ -738,6 +760,5 @@ void main(int argc, char* argv[])
 	glutSpecialFunc(SpecialKey);
 
 	initialize();									// Initialize the other thing.
-
 	glutMainLoop();									// Execute the loop which handles events.
 }
