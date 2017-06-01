@@ -14,14 +14,14 @@ c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)
 c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\texturemapping\texturemapping\particle.h(283): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
 source.cpp(181): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(205): note: 'fopen' 선언을 참조하십시오.
-source.cpp(236): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
-source.cpp(373): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
-source.cpp(397): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
-source.cpp(548): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
-source.cpp(549): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+source.cpp(237): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+source.cpp(378): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+source.cpp(402): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+source.cpp(553): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+source.cpp(554): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
   코드를 생성하고 있습니다.
-  1 of 370 functions ( 0.3%) were compiled, the rest were copied from previous compilation.
+  2 of 967 functions ( 0.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    2 functions had inline decision re-evaluated but remain unchanged
+    1 functions had inline decision re-evaluated but remain unchanged
   코드를 생성했습니다.
   TextureMapping.vcxproj -> C:\Users\samsung\Desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\CGTermProject\TextureMapping\Release\TextureMapping.exe
