@@ -172,6 +172,7 @@ class mass_cloth {
 public:
 	std::vector<particle *> p;
 	std::vector<mass_spring *> e;
+	std::vector<particle *> fp;
 
 	int grid_n, grid_m, grid_l;
 	double dx, dy, dz;
@@ -213,11 +214,11 @@ public:
 		// init particle
 		for (i = 0; i < ctn->verts.size(); i++) {
 			particle *tmp = new particle(ctn->verts[i].pos);
-			if (i < 20) {
+			if (abs(ctn->bbmax.pos.y - ctn->verts[i].pos.y) < 0.1 ) {
 				tmp->fixed = true;
+				fp.push_back(tmp);
 			}
 			p.push_back(tmp);
-			
 		}
 		// init_spring
 		vector<edge> ed;
@@ -234,6 +235,9 @@ public:
 		{
 			mass_spring *sp = new mass_spring(p[ed[i].p1], p[ed[i].p2]);
 			sp->spring_coef = dist_coef;
+			if (i % 3 == 0) {
+				sp->spring_coef = shear_coef;
+			}
 			e.push_back(sp);
 			
 		}

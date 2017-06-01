@@ -33,6 +33,8 @@ Matrix ctn2wld;
 WaveFrontOBJ* ctn;
 mass_cloth *cloth;
 
+GLuint texbox[6];
+
 unsigned floorTexID;
 
 int frame = 0;
@@ -168,7 +170,7 @@ void drawCamera()
 }
 
 void InitCtn() {
-	ctn = new WaveFrontOBJ("test_square.obj");
+	ctn = new WaveFrontOBJ("curtain3.obj");
 	cloth = new mass_cloth();
 	cloth->dx = 0.1;
 	cloth->dy = 0.1;
@@ -176,7 +178,7 @@ void InitCtn() {
 	cloth->grid_n = 40;
 	cloth->grid_m = 40;
 	cloth->grid_l = 40;
-	cloth->dist_coef = 3000;
+	cloth->dist_coef = 500;
 	cloth->shear_coef = 100;
 
 	cloth->iteration_n = 10;
@@ -184,7 +186,7 @@ void InitCtn() {
 	cloth->init(ctn);
 	glPushMatrix();											// Push the current matrix of GL into stack.
 	glLoadIdentity();										// Set the GL matrix Identity matrix.
-	glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
+	//glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
 															// Set the direction of cow. These information are stored in the matrix of GL.
 	glGetFloatv(GL_MODELVIEW_MATRIX, ctn2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
 	glPopMatrix();											// Pop the matrix on stack to GL.
@@ -676,7 +678,7 @@ void translate(){
 
 
 void idle() {
-	Vector gravity(0.0, -8.0, 0.0);
+	Vector gravity(0.0, -9.8, 0.0);
 	float dt = 0.01;
 
 	//	spring.integrate(dt, gravity);
