@@ -62,7 +62,7 @@ WaveFrontOBJ::WaveFrontOBJ(char *filename)
 
 			else if ( !strcmp( token, "vt" ) ) {
 				tex_u = atof( strtok( NULL, wspace ) );
-				tex_v = atof( strtok( NULL, wspace ) );
+				tex_v = 1 - atof( strtok( NULL, wspace ) );
 				texCoords.push_back( TexCoord(tex_u, tex_v ) );
 			}
 

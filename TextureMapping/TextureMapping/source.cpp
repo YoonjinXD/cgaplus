@@ -173,6 +173,7 @@ void drawCamera()
 	}
 }
 
+// Texture Mapping
 GLuint LoadTexture(char *texfile) {
 	GLuint texture = NULL;
 	glGenTextures(1, &texture);
@@ -197,13 +198,14 @@ GLuint LoadTexture(char *texfile) {
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_MODULATE);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	stbi_image_free(image);
 
 	return texture;
 }
 
 void InitCtn() {
-	ctn = new WaveFrontOBJ(".obj");
+	ctn = new WaveFrontOBJ("curtain_test.obj");
 	cloth = new mass_cloth();
 	cloth->dx = 0.1;
 	cloth->dy = 0.1;
@@ -211,7 +213,7 @@ void InitCtn() {
 	cloth->grid_n = 40;
 	cloth->grid_m = 40;
 	cloth->grid_l = 40;
-	cloth->dist_coef = 500;
+	cloth->dist_coef = 2500;
 	cloth->shear_coef = 100;
 
 	cloth->iteration_n = 10;
@@ -219,7 +221,7 @@ void InitCtn() {
 	cloth->init(ctn);
 	glPushMatrix();											// Push the current matrix of GL into stack.
 	glLoadIdentity();										// Set the GL matrix Identity matrix.
-	glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
+//	glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
 															// Set the direction of cow. These information are stored in the matrix of GL.
 	glGetFloatv(GL_MODELVIEW_MATRIX, ctn2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
 	glPopMatrix();											// Pop the matrix on stack to GL.
@@ -249,12 +251,16 @@ void drawCtn()
 		glColor3f(r, g, b);
 	}
 
+	glBindTexture(GL_TEXTURE_2D, photo);
+	glEnable(GL_TEXTURE_2D);
+
 	ctn->Draw();
 	/*******************************************************************/
 	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
 	/*******************************************************************/
 	//ctn->Draw_FN();
 	//ctn->Draw_VN();
+	glDisable(GL_TEXTURE_2D);
 
 	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
 }
@@ -472,8 +478,7 @@ void display()
 	else
 		glClearColor(0, 0, 0, 1);									// When the backbuffer mode, clear color is set to black
 
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_DEPTH_TEST);
+	
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);				// Clear the screen
 
@@ -482,7 +487,7 @@ void display()
 	else
 		glShadeModel(GL_SMOOTH);
 
-	glBindTexture(GL_TEXTURE_2D, photo);
+	/*
 	glBegin(GL_QUADS);
 		glTexCoord2f(0.0, 1 - 1.0);
 		glVertex3f(0, 10,10);
@@ -493,8 +498,9 @@ void display()
 		glTexCoord2f(1.0, 1 - 1.0);
 		glVertex3f(0, 10, 20);
 	glEnd();
+	*/
 
-//	drawCtn();
+	drawCtn();
 	drawCamera();													// and draw all of them.
 	drawFloor();													// Draw floor.
 
@@ -557,7 +563,7 @@ void initialize()
 
 
 
-//	InitCtn();
+	InitCtn();
 	InitCamera();
 }
 
