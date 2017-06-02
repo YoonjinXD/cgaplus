@@ -193,11 +193,11 @@ GLuint LoadTexture(char *texfile) {
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_MODULATE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_BLEND);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	stbi_image_free(image);
 
@@ -205,7 +205,7 @@ GLuint LoadTexture(char *texfile) {
 }
 
 void InitCtn() {
-	ctn = new WaveFrontOBJ("curtain_test.obj");
+	ctn = new WaveFrontOBJ("sky_test.obj");
 	cloth = new mass_cloth();
 	cloth->dx = 0.1;
 	cloth->dy = 0.1;
@@ -221,7 +221,7 @@ void InitCtn() {
 	cloth->init(ctn);
 	glPushMatrix();											// Push the current matrix of GL into stack.
 	glLoadIdentity();										// Set the GL matrix Identity matrix.
-//	glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
+	glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
 															// Set the direction of cow. These information are stored in the matrix of GL.
 	glGetFloatv(GL_MODELVIEW_MATRIX, ctn2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
 	glPopMatrix();											// Pop the matrix on stack to GL.
@@ -253,6 +253,7 @@ void drawCtn()
 
 	glBindTexture(GL_TEXTURE_2D, photo);
 	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHTING);
 
 	ctn->Draw();
 	/*******************************************************************/
@@ -261,6 +262,7 @@ void drawCtn()
 	//ctn->Draw_FN();
 	//ctn->Draw_VN();
 	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_LIGHTING);
 
 	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
 }
@@ -559,7 +561,7 @@ void initialize()
 	glEnable(GL_LIGHT0);
 
 	// Texture Mapping
-	photo = LoadTexture("Mario Mushroom.tga");
+	photo = LoadTexture("sky_test.jpg");
 
 
 
