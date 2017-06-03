@@ -197,15 +197,15 @@ GLuint LoadTexture(char *texfile) {
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_BLEND);
-	glBindTexture(GL_TEXTURE_2D, 0);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	stbi_image_free(image);
 
 	return texture;
 }
 
 void InitCtn() {
-	ctn = new WaveFrontOBJ("sky_test.obj");
+	ctn = new WaveFrontOBJ("plant_test.obj");
+	ctn->WaveFrontMTL("plant_test.mtl");
 	cloth = new mass_cloth();
 	cloth->dx = 0.1;
 	cloth->dy = 0.1;
@@ -221,7 +221,7 @@ void InitCtn() {
 	cloth->init(ctn);
 	glPushMatrix();											// Push the current matrix of GL into stack.
 	glLoadIdentity();										// Set the GL matrix Identity matrix.
-	glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
+//	glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
 															// Set the direction of cow. These information are stored in the matrix of GL.
 	glGetFloatv(GL_MODELVIEW_MATRIX, ctn2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
 	glPopMatrix();											// Pop the matrix on stack to GL.
@@ -250,17 +250,19 @@ void drawCtn()
 		munge(32, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
 		glColor3f(r, g, b);
 	}
-
+	/*
 	glBindTexture(GL_TEXTURE_2D, photo);
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_LIGHTING);
-
+	*/
 	ctn->Draw();
+//	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	/*******************************************************************/
 	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
 	/*******************************************************************/
 	//ctn->Draw_FN();
 	//ctn->Draw_VN();
+	
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_LIGHTING);
 
@@ -504,7 +506,7 @@ void display()
 
 	drawCtn();
 	drawCamera();													// and draw all of them.
-	drawFloor();													// Draw floor.
+//	drawFloor();													// Draw floor.
 
 	Lighting();
 

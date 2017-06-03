@@ -2,6 +2,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <cstdio>
 #include <iostream>
 #include <fstream>
 #include <GL/glut.h>
@@ -9,6 +10,19 @@
 #include "Vector.h"
 
 using namespace std;
+
+int partIndex= -1;
+
+int WaveFrontOBJ::findMaterialIndex(char *name)
+{
+	for (unsigned int i = 0; i<materials.size(); ++i) {
+		if (!strcmp(name, materials[i].name)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 //------------------------------------------------------------------------------
 // 객체를 생성하면서 filename 에서 object 를 읽는다
 // Construct object and read object from filename
@@ -25,6 +39,11 @@ WaveFrontOBJ::WaveFrontOBJ(char *filename)
 	int indices[3];
 	float x, y, z;
 	float tex_u, tex_v;
+	
+	Part part_;
+	part_.name[0] = 0;
+	parts.push_back(part_);
+
 
 	ifstream file(filename);
 	if ( !file ) {
@@ -70,6 +89,7 @@ WaveFrontOBJ::WaveFrontOBJ(char *filename)
 				int vi = (int)vIndex.size();
 				faces.push_back( Face( vi ) );
 				Face& curFace = faces.back();
+				curFace.partIndex = parts.size()-1;
 				for (char *p = strtok( NULL, wspace ); p ; p = strtok( NULL, wspace ) ) {
 					indices[0] = 0;
 					indices[1] = 0;
@@ -87,7 +107,7 @@ WaveFrontOBJ::WaveFrontOBJ(char *filename)
 
 					vIndex.push_back( indices[0] - 1 );
 					tIndex.push_back( indices[1] - 1 );
-					nIndex.push_back( indices[2] - 1 );                        
+					nIndex.push_back( indices[2] - 1 );
 					curFace.vCount++;
 
 					if (indices[2] != 0)
@@ -100,6 +120,15 @@ WaveFrontOBJ::WaveFrontOBJ(char *filename)
 				}
 			}
 
+			else if (!strcmp("usemtl", token)) {
+				Part part_ = Part();
+				for (char *p = strtok(NULL, wspace); p; p = strtok(NULL, wspace)) {
+					int len = (int)strlen(p);
+					strcpy(part_.name, p);
+				}
+				parts.push_back(part_);
+
+			}
 
 			else if ( !strcmp( token, "g" ) ) {      // group
 			}
@@ -118,6 +147,73 @@ WaveFrontOBJ::WaveFrontOBJ(char *filename)
 	vertexNormal();
 
 	computeBoundingBox();
+	file.close();
+}
+
+void WaveFrontOBJ::WaveFrontMTL(char *filename)
+{
+	FILE *fp = fopen(filename, "r");
+
+	Material *material = NULL;
+	char buffer[1024];
+
+	while (fscanf(fp, "%s", buffer) != EOF) {
+		if (!strncmp("#", buffer, 1)) {
+		}
+		else if (!strcmp("newmtl", buffer)) {
+			Material material_;
+			fscanf(fp, "%s", material_.name);
+
+			materials.push_back(material_);
+			material = (Material *)&(*materials.rbegin());
+		}
+		else if (!strcmp("Ka", buffer)) {
+			// defines the ambient color of the material to be (r,g,b)
+			if (material) fscanf(fp, "%f %f %f", &material->Ka[0], &material->Ka[1], &material->Ka[2]);
+		}
+		else if (!strcmp("Kd", buffer)) {
+			// defines the diffuse reflectivity color of the material to be (r,g,b)
+			if (material) fscanf(fp, "%f %f %f", &material->Kd[0], &material->Kd[1], &material->Kd[2]);
+		}
+		else if (!strcmp("Ks", buffer)) {
+			// defines the specular reflectivity color of the material to be (r,g,b)
+			if (material) fscanf(fp, "%f %f %f", &material->Ks[0], &material->Ks[1], &material->Ks[2]);
+		}
+		else if (!strcmp("Tf", buffer)) {
+			// specify the transmission filter of the current material to be (r,g,b)
+			if (material) fscanf(fp, "%f %f %f", &material->Tf[0], &material->Tf[1], &material->Tf[2]);
+		}
+		else if (!strcmp("illum", buffer)) {
+			// specifies the illumination model to use in the material
+			//  "illum_#"can be a number from 0 to 10
+			//	 0	Color on and Ambient off
+			//	 1	Color on and Ambient on
+			//	 2	Highlight on
+			//	 3	Reflection on and Ray trace on
+			//	 4	Transparency: Glass on Reflection: Ray trace on
+			//	 5	Reflection: Fresnel on and Ray trace on
+			//	 6	Transparency: Refraction on Reflection: Fresnel off and Ray trace on
+			//	 7	Transparency: Refraction on Reflection: Fresnel on and Ray trace on
+			//	 8	Reflection on and Ray trace off
+			//	 9	Transparency: Glass on Reflection: Ray trace off
+			//	 10	Casts shadows onto invisible surfaces
+			if (material) fscanf(fp, "%i", &material->illum);
+		}
+		else if (!strcmp("map_Kd", buffer)) {
+			if (material) fscanf(fp, "%s", material->map_Kd);
+		}
+		else if (!strcmp("Ns", buffer)) {
+			if (material) fscanf(fp, "%f", &material->Ns);
+		}
+		else if (!strcmp("Ni", buffer)) {
+			if (material) fscanf(fp, "%f", &material->Ni);
+		}
+		else if (!strcmp("d", buffer)) {
+			if (material) fscanf(fp, "%f", &material->d);
+		}
+		fgets(buffer, 1024, fp);
+	}
+	fclose(fp);
 }
 
 
@@ -162,14 +258,33 @@ void WaveFrontOBJ::vertexNormal() {
 	}
 }
 
+int flag=0;
+
 //------------------------------------------------------------------------------
 // OpenGL API 를 사용해서 파일에서 읽어둔 object 를 그리는 함수.
 // Draw object which is read from file
 void WaveFrontOBJ::Draw() {
 	int i;
-
+	if (flag == 0) {
+		flag = 1;
+		printf("%d\n", materials.size());
+		for (int i = 0; i < materials.size(); i++) {
+			printf("%d\n", i + 1);
+			printf("%s\n", materials[i].name);
+			printf("%lf %lf %lf\n", materials[i].Kd[0], materials[i].Kd[1], materials[i].Kd[2]);
+		}
+	}
 	for (int f = 0; f < (int)faces.size(); f++) {
-		Face& curFace = faces[f];        
+		Face& curFace = faces[f];
+		int index = findMaterialIndex(parts[curFace.partIndex].name);
+		if (index != -1) {
+
+			Material material = materials[index];
+			glColor3f(material.Kd[0], material.Kd[1], material.Kd[2]);
+		}
+		else {
+			glColor3f(0.7, 0.7, 0.7);
+		}
 		glBegin(mode);
 		for (int v = 0; v < curFace.vCount; v++) {
 			int vi = curFace.vIndexStart + v;

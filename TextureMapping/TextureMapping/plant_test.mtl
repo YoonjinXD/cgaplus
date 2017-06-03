@@ -1,0 +1,70 @@
+newmtl bong_final:initialShadingGroup
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl ho1:lambert1SG
+illum 4
+Kd 0.03 0.03 0.03
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl initialShadingGroup
+illum 4
+Kd 0.53 0.53 0.53
+Ka 0.19 0.19 0.19
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl plant_final:initialShadingGroup2
+illum 4
+Kd 0.18 0.56 0.15
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl plant_final:lambert3SG
+illum 4
+Kd 0.05 0.02 0.01
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl plant_final:phongE2SG
+illum 4
+Kd 0.08 0.10 0.11
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+Ns 0.06
+newmtl plant_final:phongE3SG
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+Ns 0.06
+newmtl rv_table_with_vase:blinn25SG
+illum 4
+Kd 0.05 0.05 0.05
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.58 0.58 0.58
+Ns 0.06
+newmtl rv_table_with_vase:blinn27SG
+illum 4
+Kd 0.79 0.79 0.79
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+Ns 0.06
+newmtl rv_table_with_vase:brown_poly1SG
+illum 4
+Kd 0.21 0.08 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.39 0.39 0.39
+Ns 0.06
