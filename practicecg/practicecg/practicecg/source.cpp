@@ -20,23 +20,23 @@
 using namespace std;
 
 // 'cameras' stores infomation of 5 cameras.
-float cameras[5][9] =
-{
-	{ 28, 18, 28, 0, 2, 0, 0, 1, 0 },
-	{ 28, 18, -28, 0, 2, 0, 0, 1, 0 },
-	{ -28, 18, 28, 0, 2, 0, 0, 1, 0 },
-	{ -12, 12, 0, 0, 2, 0, 0, 1, 0 },
-	{ 0, 100, 0, 0, 0, 0, 1, 0, 0 }
-};
-int cameraCount = sizeof(cameras) / sizeof(cameras[0]);
+float cameras[9] = { 28, 18, 28, -0.6, -0.3, -0.7, 0, 1, 0 };
 
-int cameraIndex;
-vector<Matrix> wld2cam, cam2wld;
+
+Matrix wld2cam, cam2wld;
 // texture mapping
-GLuint photo;
+GLuint photo, photo2, screenTexture;
 Matrix ctn2wld;
 WaveFrontOBJ* ctn;
 mass_cloth *cloth;
+Matrix ctn22wld;
+WaveFrontOBJ* ctn2;
+mass_cloth *cloth2;
+
+GLuint RoomPhoto, SkyPhoto;
+Matrix room2wld, sky2wld;
+WaveFrontOBJ* room, *sky;
+
 
 GLuint texbox[6];
 
@@ -55,13 +55,14 @@ bool picking = false;
 /*******************************************************************/
 //(PA #2,#3) 수행한 내용 추가
 /*******************************************************************/
-float dist_x; //x축 마우스 드래그 정도
-float dist_y; //y축 마우스 드래그 정도
+float moveX; //x축 마우스 드래그 정도
+float moveY; //y축 마우스 드래그 정도
 float dist; //마우스 드래그 정도를 계산한 값 저장
 int axis = 0; //현재 선택된 축을 저장. 0,1,2 순서대로 x,y,z
 bool spin = false; //rotate의 on/off를 결정해주는 변수.
 int sp_mode = 0; //space mode. 현재 선택된 mode가 viewing인지 modeling인지 저장. 초기값은 modeling space
 int current_obj = 0; //현재 선택된 object를 저장. 0=cow, 1=bunny. 초기값은 cow
+float camview[3] = { (cameras[3]), (cameras[4]),(cameras[5]) };
 
 /*PA4 추가 변수*/
 bool drawF = false; //Face Normal on/off
@@ -107,15 +108,15 @@ GLuint LoadTexture(char *texfile) {
 	unsigned char *image = stbi_load_from_file(fp, &width, &height, &channel, 4);
 	fclose(fp);
 
-
+	//glEnable(GL_TEXTURE_2D);
+	//glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_MODULATE);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	stbi_image_free(image);
 
@@ -150,87 +151,216 @@ void drawAxis(float len)
 void InitCamera(){
 
 	// initialize camera frame transforms.
-	for (int i = 0; i < cameraCount; i++)
-	{
-		float* c = cameras[i];													// 'c' points the coordinate of i-th camera.
-		wld2cam.push_back(Matrix());											// Insert {0} matrix to wld2cam vector.
-		glPushMatrix();															// Push the current matrix of GL into stack.
+	float* c = cameras;													// 'c' points the coordinate of i-th camera.
+	wld2cam.set(Matrix().m);											// Insert {0} matrix to wld2cam vector.
+	glPushMatrix();															// Push the current matrix of GL into stack.
 
-		glLoadIdentity();														// Set the GL matrix Identity matrix.
-		gluLookAt(c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8]);		// Setting the coordinate of camera.
-		glGetFloatv(GL_MODELVIEW_MATRIX, wld2cam[i].matrix());					// Read the world-to-camera matrix computed by gluLookAt.
-		cam2wld.push_back(wld2cam[i].inverse());								// Get the camera-to-world matrix.
+	glLoadIdentity();														// Set the GL matrix Identity matrix.
+	gluLookAt(c[0], c[1], c[2], c[0] + camview[0], c[1] + camview[1], c[2] + camview[2], c[6], c[7], c[8]);		// Setting the coordinate of camera.
+	glGetFloatv(GL_MODELVIEW_MATRIX, wld2cam.matrix());					// Read the world-to-camera matrix computed by gluLookAt.
+	cam2wld.set(wld2cam.inverse().m);								// Get the camera-to-world matrix.
 
-		glPopMatrix();															// Transfer the matrix that was pushed the stack to GL.
-	}
-	cameraIndex = 0;
+	glPopMatrix();															// Transfer the matrix that was pushed the stack to GL.
+	
 }
 
 
-
-
-
-void drawCamera()
-{
-	int i;
-	// set viewing transformation.
-	glLoadMatrixf(wld2cam[cameraIndex].matrix());
-
-	// draw cameras.
-	for (i = 0; i < (int)wld2cam.size(); i++)
-	{
-		if (i != cameraIndex)
-		{
-			glPushMatrix();													// Push the current matrix on GL to stack. The matrix is wld2cam[cameraIndex].matrix().
-			glMultMatrixf(cam2wld[i].matrix());								// Multiply the matrix to draw i-th camera.
-			if (selectMode == 0)											// selectMode == 1 means backbuffer mode.
-			{
-				drawAxis(5);												// Draw x, y, and z axis.
-			}
-			else
-			{
-				float r, g, b;
-				glDisable(GL_LIGHTING);										// Disable lighting in backbuffer mode.
-				munge(i + 1, r, g, b);										// Match the corresponding (i+1)th color to r, g, b. You can change the color of camera on backbuffer.
-				glColor3f(r, g, b);											// Set r, g, b the color of camera.
-			}
-
-			glutSolidSphere(1.0, 10, 10);
-
-			glPopMatrix();													// Call the matrix on stack. wld2cam[cameraIndex].matrix() in here.
-		}
-	}
-}
-
-void moveCam(int num) {
+void moveCam() {
+	float* c = cameras;
 	glPushMatrix();
 	glLoadIdentity();
-	glMultMatrixf(wld2cam[cameraIndex-1].matrix());
-	float Px[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 1,0,0,0 } };
-	float Py[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,1,0,0 } };
-	float Pz[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,1,0 } };
-	float Mx[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ -1,0,0,0 } };
-	float My[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,-1,0,0 } };
-	float Mz[4][4] = { { 0,0,0,0 },{ 0,0,0,0 },{ 0,0,0,0 },{ 0,0,-1,0 } };
+	
+	float delta = 2;
 
-	switch (num) {
-	case 1:
-		cam2wld[cameraIndex - 1].set(cam2wld[cameraIndex - 1].add(Px).m); break;
-	case 2:
-		cam2wld[cameraIndex - 1].set(cam2wld[cameraIndex - 1].add(Mx).m); break;
-	case 3:
-		glTranslatef(0.0, 0.1, 0.0); break;
-	case 4:
-		glTranslatef(0.0, -0.1, 0.0); break;
-	case 5:
-		glTranslatef(0.0, 0.0, 0.1); break;
-	case 6:
-		glTranslatef(0.0, 0.0, -0.1); break;
-	default: break;
+	if (GetAsyncKeyState('W'))
+	{
+		c[0] -= cam2wld.m[2][0] * delta;
+		c[1] -= cam2wld.m[2][1] * delta;
+		c[2] -= cam2wld.m[2][2] * delta;
 	}
+	if (GetAsyncKeyState('S'))
+	{
+		c[0] += cam2wld.m[2][0] * delta;
+		c[1] += cam2wld.m[2][1] * delta;
+		c[2] += cam2wld.m[2][2] * delta;
+	}
+	if (GetAsyncKeyState('A'))
+	{
+		c[0] -= cam2wld.m[0][0] * delta;
+		c[1] -= cam2wld.m[0][1] * delta;
+		c[2] -= cam2wld.m[0][2] * delta;
+	}
+	if (GetAsyncKeyState('D'))
+	{
+		c[0] += cam2wld.m[0][0] * delta;
+		c[1] += cam2wld.m[0][1] * delta;
+		c[2] += cam2wld.m[0][2] * delta;
+	}
+	if (GetAsyncKeyState('Z')) {
+		c[1] -= delta;
+		c[4] -= delta;
+	}
+	if (GetAsyncKeyState('Q'))
+	{
+		c[1] += delta;
+		c[4] += delta;
+	}
+		
+	gluLookAt(c[0], c[1], c[2], c[0] + camview[0], c[1] + camview[1], c[2] + camview[2], c[6], c[7], c[8]);
+	glGetFloatv(GL_MODELVIEW_MATRIX, wld2cam.matrix());
+	cam2wld.set(wld2cam.inverse().m);
+	
+	glPopMatrix();
+	glutPostRedisplay();
+}
+void normalize(float *v)
+{
+	float magnitude = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+	v[0] /= magnitude;
+	v[1] /= magnitude;
+	v[2] /= magnitude;
+}
+void rotate_view(float view[3], float angle, float x, float y, float z)
+{
+	float new_x;
+	float new_y;
+	float new_z;
+
+	float c = cos(angle);
+	float s = sin(angle);
+
+	new_x = (x*x*(1 - c) + c)	* view[0];
+	new_x += (x*y*(1 - c) - z*s)	* view[1];
+	new_x += (x*z*(1 - c) + y*s)	* view[2];
+
+	new_y = (y*x*(1 - c) + z*s)	* view[0];
+	new_y += (y*y*(1 - c) + c)	* view[1];
+	new_y += (y*z*(1 - c) - x*s)	* view[2];
+
+	new_z = (x*z*(1 - c) - y*s)	* view[0];
+	new_z += (y*z*(1 - c) + x*s)	* view[1];
+	new_z += (z*z*(1 - c) + c)	* view[2];
+
+	view[0] = new_x;
+	view[1] = new_y;
+	view[2] = new_z;
+
+	normalize(view);
+}
+
+void moveWatch(float rot_x, float rot_y) {
+	glPushMatrix();
+	glLoadIdentity();
+	float rot_axis[3];
+	float* c = cameras;
+	
+	normalize(camview);
+	printf("%f, %f, %f\n", camview[0], camview[1], camview[2]);
+	rotate_view(camview, rot_x, 0.0f, 1.0f, 0.0f);
+	printf("%f, %f, %f\n", camview[0], camview[1], camview[2]);
+	rot_axis[0] = -camview[2];
+	rot_axis[1] = 0.0f;
+	rot_axis[2] = camview[0];
+
+	normalize(rot_axis);
+
+	rotate_view(camview, -rot_y, rot_axis[0], rot_axis[1], rot_axis[2]);
+
+	gluLookAt(c[0], c[1], c[2], c[0] + camview[0], c[1] + camview[1], c[2] + camview[2], c[6], c[7], c[8]);
+	glGetFloatv(GL_MODELVIEW_MATRIX, wld2cam.matrix());
+	cam2wld.set(wld2cam.inverse().m);
 
 	glPopMatrix();
 	glutPostRedisplay();
+}
+
+void InitSky() {
+	sky = new WaveFrontOBJ("skymap.obj");
+
+	glPushMatrix();											// Push the current matrix of GL into stack.
+	glLoadIdentity();										// Set the GL matrix Identity matrix.
+	glTranslatef(0, 0, 0);					// Set the location of cow.
+											// Set the direction of cow. These information are stored in the matrix of GL.
+	glGetFloatv(GL_MODELVIEW_MATRIX, sky2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
+	glPopMatrix();											// Pop the matrix on stack to GL.
+
+}
+
+void drawSky()
+{
+	glPushMatrix();											// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
+															// The information about location of cow to be drawn is stored in cow2wld matrix.
+															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
+	glMultMatrixf(sky2wld.matrix());
+
+	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
+	{
+		drawAxis(5);										// Draw x, y, and z axis.
+		glEnable(GL_TEXTURE_2D);
+	}
+	else
+	{
+		float r, g, b;
+		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
+		glDisable(GL_TEXTURE_2D);
+		munge(34, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
+		glColor3f(r, g, b);
+	}
+	glBindTexture(GL_TEXTURE_2D, SkyPhoto);
+
+	sky->Draw();
+	/*******************************************************************/
+	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
+	/*******************************************************************/
+	//ctn->Draw_FN();
+	//ctn->Draw_VN();
+	glDisable(GL_TEXTURE_2D);
+
+	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
+}
+void InitRoom() {
+	room = new WaveFrontOBJ("room.obj");
+	
+	glPushMatrix();											// Push the current matrix of GL into stack.
+	glLoadIdentity();										// Set the GL matrix Identity matrix.
+	glTranslatef(0, 0, 0);					// Set the location of cow.
+																			// Set the direction of cow. These information are stored in the matrix of GL.
+	glGetFloatv(GL_MODELVIEW_MATRIX, room2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
+	glPopMatrix();											// Pop the matrix on stack to GL.
+
+}
+
+void drawRoom()
+{
+	glPushMatrix();											// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
+															// The information about location of cow to be drawn is stored in cow2wld matrix.
+															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
+	glMultMatrixf(room2wld.matrix());
+
+	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
+	{
+		drawAxis(5);										// Draw x, y, and z axis.
+		glEnable(GL_TEXTURE_2D);
+	}
+	else
+	{
+		float r, g, b;
+		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
+		glDisable(GL_TEXTURE_2D);
+		munge(34, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
+		glColor3f(r, g, b);
+	}
+	glBindTexture(GL_TEXTURE_2D, RoomPhoto);
+
+	room->Draw();
+	/*******************************************************************/
+	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
+	/*******************************************************************/
+	//ctn->Draw_FN();
+	//ctn->Draw_VN();
+	glDisable(GL_TEXTURE_2D);
+
+	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
 }
 
 void InitCtn() {
@@ -245,7 +375,7 @@ void InitCtn() {
 	cloth->init(ctn);
 	glPushMatrix();											// Push the current matrix of GL into stack.
 	glLoadIdentity();										// Set the GL matrix Identity matrix.
-	//glTranslatef(0, ctn->bbmax.pos.y, 0);					// Set the location of cow.
+	glTranslatef(-ctn->bbmax.pos.x, 0, ctn->bbmax.pos.z);					// Set the location of cow.
 															// Set the direction of cow. These information are stored in the matrix of GL.
 	glGetFloatv(GL_MODELVIEW_MATRIX, ctn2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
 	glPopMatrix();											// Pop the matrix on stack to GL.
@@ -258,6 +388,7 @@ void drawCtn()
 															// The information about location of cow to be drawn is stored in cow2wld matrix.
 															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
 	glMultMatrixf(ctn2wld.matrix());
+	
 	cloth->sync(ctn);
 	for (int i = 0; i < ctn->faces.size(); i++) {
 		ctn->faces[i].normal = ctn->faceNormal(ctn->verts[ctn->vIndex[ctn->faces[i].vIndexStart]], ctn->verts[ctn->vIndex[ctn->faces[i].vIndexStart + 1]], ctn->verts[ctn->vIndex[ctn->faces[i].vIndexStart + 2]]);
@@ -266,17 +397,76 @@ void drawCtn()
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
 		drawAxis(5);										// Draw x, y, and z axis.
+		glEnable(GL_TEXTURE_2D);
 	}
 	else
 	{
 		float r, g, b;
 		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
+		glDisable(GL_TEXTURE_2D);
 		munge(32, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
 		glColor3f(r, g, b);
 	}
 	glBindTexture(GL_TEXTURE_2D, photo);
-	glEnable(GL_TEXTURE_2D);
+	
 	ctn->Draw();
+	/*******************************************************************/
+	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
+	/*******************************************************************/
+	//ctn->Draw_FN();
+	//ctn->Draw_VN();
+	glDisable(GL_TEXTURE_2D);
+
+	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
+}
+
+void InitCtn2() {
+	ctn2 = new WaveFrontOBJ("curtain_test2.obj");
+	cloth2 = new mass_cloth();
+
+	cloth2->dist_coef = 300;
+	cloth2->shear_coef = 100;
+
+	cloth2->iteration_n = 6;
+
+	cloth2->init(ctn2);
+	glPushMatrix();											// Push the current matrix of GL into stack.
+	glLoadIdentity();										// Set the GL matrix Identity matrix.
+	glTranslatef(ctn2->bbmax.pos.x, 0, -ctn2->bbmax.pos.z);					// Set the location of cow.
+															// Set the direction of cow. These information are stored in the matrix of GL.
+	glGetFloatv(GL_MODELVIEW_MATRIX, ctn22wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
+	glPopMatrix();											// Pop the matrix on stack to GL.
+
+}
+
+void drawCtn2()
+{
+	glPushMatrix();											// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
+															// The information about location of cow to be drawn is stored in cow2wld matrix.
+															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
+	glMultMatrixf(ctn22wld.matrix());
+
+	cloth2->sync(ctn2);
+	for (int i = 0; i < ctn2->faces.size(); i++) {
+		ctn2->faces[i].normal = ctn2->faceNormal(ctn2->verts[ctn2->vIndex[ctn2->faces[i].vIndexStart]], ctn2->verts[ctn2->vIndex[ctn2->faces[i].vIndexStart + 1]], ctn2->verts[ctn2->vIndex[ctn2->faces[i].vIndexStart + 2]]);
+	}
+	ctn2->vertexNormal();
+	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
+	{
+		drawAxis(5);										// Draw x, y, and z axis.
+		glEnable(GL_TEXTURE_2D);
+	}
+	else
+	{
+		float r, g, b;
+		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
+		glDisable(GL_TEXTURE_2D);
+		munge(33, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
+		glColor3f(r, g, b);
+	}
+	glBindTexture(GL_TEXTURE_2D, photo2);
+	
+	ctn2->Draw();
 	/*******************************************************************/
 	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
 	/*******************************************************************/
@@ -341,13 +531,13 @@ void drawFloor()
 	}
 
 	// Draw background rectangle.
-	glBegin(GL_POLYGON);
+	/*glBegin(GL_POLYGON);
 	glVertex3f(-2000, -0.2, -2000);
 	glVertex3f(-2000, -0.2, 2000);
 	glVertex3f(2000, -0.2, 2000);
 	glVertex3f(2000, -0.2, -2000);
 	glEnd();
-
+	*/
 
 	// Set color of the floor.
 	if (selectMode == 0)
@@ -491,6 +681,7 @@ void Lighting()
 **********************************************************************************/
 void display()
 {
+	glLoadMatrixf(wld2cam.matrix());
 	if (selectMode == 0)
 		glClearColor(0, 0.6, 0.8, 1);								// Clear color setting
 	else
@@ -503,8 +694,15 @@ void display()
 	else
 		glShadeModel(GL_SMOOTH);
 
-	drawCtn();
-	drawCamera();													// and draw all of them.
+	moveCam();
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	drawSky();
+	drawRoom();
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	drawCtn();													// and draw all of them.
+	drawCtn2();
+	
+
 	drawFloor();													// Draw floor.
 	Lighting();
 
@@ -534,7 +732,7 @@ void reshape(int w, int h)
 	glMatrixMode(GL_PROJECTION);            // Select The Projection Matrix
 	glLoadIdentity();                       // Reset The Projection Matrix
 	float aspect = width / float(height);
-	gluPerspective(45, aspect, 1, 1024);
+	gluPerspective(45, aspect, 1, 4096);
 
 	glMatrixMode(GL_MODELVIEW);             // Select The Modelview Matrix
 	glLoadIdentity();                       // Reset The Projection Matrix
@@ -562,9 +760,16 @@ void initialize()
 	
 	// Texture Mapping
 	photo = LoadTexture("Mario Mushroom.tga");
+	photo2 = LoadTexture("Mario Mushroom.tga");
+	RoomPhoto = LoadTexture("room.png");
+	SkyPhoto = LoadTexture("nightsky.PNG");
 
+	InitSky();
+	InitRoom();
 	InitCtn();
+	InitCtn2();
 	InitCamera();
+
 }
 
 
@@ -598,8 +803,7 @@ void onMouseButton(int button, int state, int x, int y)
 				if (pixel_value == 32) current_obj = 0;
 				else if (pixel_value == 33) current_obj = 1;
 				else {
-					current_obj = -1;
-					printf("Picking Error: Please select objects");
+					current_obj = 2;
 				}
 				picking = false; //picking이 종료되었으므로 다시 false로 복구한다.
 			}
@@ -620,11 +824,18 @@ void onMouseDrag(int x, int y)
 {	
 	y = height - y - 1;
 	
-	float moveX = (x - oldX)/2.0;
-	float moveY = (y - oldY)/2.0;
-	float move[3] = { (moveX * cam2wld[cameraIndex].m[0][0] + moveY * cam2wld[cameraIndex].m[1][0]), (moveX * cam2wld[cameraIndex].m[0][1] + moveY * cam2wld[cameraIndex].m[1][1]), (moveX * cam2wld[cameraIndex].m[0][2] + moveY * cam2wld[cameraIndex].m[1][2]) };
-
-	cloth->add_force(Vector(move[0], move[1], move[2]));
+	moveX = (x - oldX)/2.0;
+	moveY = (y - oldY)/2.0;
+	float move[3] = { (moveX * cam2wld.m[0][0] + moveY * cam2wld.m[1][0]), (moveX * cam2wld.m[0][1] + moveY * cam2wld.m[1][1]), (moveX * cam2wld.m[0][2] + moveY * cam2wld.m[1][2]) };
+	if (current_obj == 0) {
+		cloth->add_force(Vector(move[0], move[1], move[2]));
+	}
+	else if (current_obj == 1) {
+		cloth2->add_force(Vector(move[0], move[1], move[2]));
+	}
+	if (current_obj == 2) {
+		moveWatch(moveX * 0.001, moveY * 0.001);
+	}
 	printf("in drag (%d, %d)\n", x - oldX, y - oldY);
 	oldX = x;
 	oldY = y;
@@ -641,32 +852,15 @@ void onMouseDrag(int x, int y)
 **********************************************************************************/
 void onKeyPress(unsigned char key, int x, int y)
 {
-	//카메라 시점 변경
-	if ((key >= '1') && (key <= '5'))
-		cameraIndex = key - '1';
-
+	
 	/*******************************************************************/
 	//(PA #2,#3)  수행한 내용 추가
 	/*******************************************************************/
-	if (key == 'w') {
-		moveCam(1);
+	
+	if (key == 'r'){
+		shademodel = !shademodel;
 	}
-	else if (key == 's') {
-		moveCam(2);
-	}
-	else if (key == 'a') {
-		moveCam(3);
-	}
-	else if (key == 'd') {
-		moveCam(4);
-	}
-	else if (key == 'q') {
-		moveCam(5);
-	}
-	else if (key == 'e') {
-		moveCam(6);
-	}
-	else if (key == 'p') { //picking 상태 on
+	if (key == 'p') { //picking 상태 on
 		picking = true;
 	}
 	else if (key == 'f') {//Draw Face Normal
@@ -743,6 +937,7 @@ void idle() {
 
 	//	spring.integrate(dt, gravity);
 	cloth->integrate(dt, gravity);
+	cloth2->integrate(dt, gravity);
 	glutPostRedisplay();
 }
 
