@@ -182,7 +182,7 @@ public:
 
 
 	double		reflect_coef;
-	double		badak = -0.2;
+	double		minx = -67.043, miny = 0.5, minz = -68.043, maxx = 67.043, maxy = 99.774, maxz = 67.043;
 	mass_cloth()
 	{
 		
@@ -196,7 +196,7 @@ public:
 
 		iteration_n = 10;
 
-		reflect_coef = 0.8;
+		reflect_coef = 0.9;
 	}
 	~mass_cloth()
 	{
@@ -288,10 +288,35 @@ public:
 	{
 		for (int i = 0; i < p.size(); i++)
 		{
-			if (p[i]->position.y < badak)
+			if (p[i]->position.x < minx)
 			{
-				p[i]->position.y = badak;
+				p[i]->position.x = minx;
+				p[i]->velocity.x *= -reflect_coef;
+			}
+			if (p[i]->position.y < miny)
+			{
+				p[i]->position.y = miny;
 				p[i]->velocity.y *= -reflect_coef;
+			}
+			if (p[i]->position.z < minz)
+			{
+				p[i]->position.z = minz;
+				p[i]->velocity.z *= -reflect_coef;
+			}
+			if (p[i]->position.x > maxx)
+			{
+				p[i]->position.x = maxx;
+				p[i]->velocity.x *= -reflect_coef;
+			}
+			if (p[i]->position.y > maxy)
+			{
+				p[i]->position.y = maxy;
+				p[i]->velocity.y *= -reflect_coef;
+			}
+			if (p[i]->position.z > maxz)
+			{
+				p[i]->position.z = maxz;
+				p[i]->velocity.z *= -reflect_coef;
 			}
 		}
 	}
