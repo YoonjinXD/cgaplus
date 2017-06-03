@@ -1,0 +1,14 @@
+﻿  WaveFrontOBJ.cpp
+c:\program files (x86)\microsoft visual studio 14.0\vc\include\gl\gl.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+  source.cpp
+c:\program files (x86)\microsoft visual studio 14.0\vc\include\gl\gl.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+c:\program files (x86)\microsoft visual studio 14.0\vc\include\gl\gl.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+c:\program files (x86)\microsoft visual studio 14.0\vc\include\gl\gl.h : warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\source.cpp(89): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.15063.0\ucrt\stdio.h(207): note: 'fopen' 선언을 참조하십시오.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\source.cpp(574): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\source.cpp(598): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\source.cpp(599): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\source.cpp(736): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\source.cpp(737): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+  코드를 생성하고 있습니다...

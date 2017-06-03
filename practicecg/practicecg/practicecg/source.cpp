@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <Windows.h>
 #include <stdlib.h>
 #include <math.h>
 #include <sys/types.h>
@@ -11,9 +10,11 @@
 #include "Matrix.h"
 #include "WaveFrontOBJ.h"
 #include "particle.h"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+
+
 
 
 #define L 100
