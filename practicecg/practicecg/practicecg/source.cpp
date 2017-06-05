@@ -25,21 +25,27 @@ float cameras[9] = { 28, 18, 28, 0, 0, -1, 0, 1, 0 };
 
 Matrix wld2cam, cam2wld;
 // texture mapping
-GLuint photo, photo2, screenTexture;
+GLuint photo, photo2;
 Matrix ctn2wld;
 WaveFrontOBJ* ctn;
 mass_cloth *cloth;
 Matrix ctn22wld;
 WaveFrontOBJ* ctn2;
 mass_cloth *cloth2;
-Matrix plt2wld;
-WaveFrontOBJ* plt;
+GLuint plt1Photo, plt2Photo, plt3Photo;
+Matrix plt12wld, plt22wld, plt32wld;
+WaveFrontOBJ* plt1, *plt2, *plt3;
 Matrix bong2wld;
 WaveFrontOBJ* bong;
-GLuint RoomPhoto, SkyPhoto;
-Matrix room2wld, sky2wld;
+GLuint RoomPhoto, SkyPhoto, MoonPhoto;
+Matrix room2wld, sky2wld, moon2wld;
 WaveFrontOBJ* room, *sky;
+WaveFrontOBJ *moon;
+GLuint tvPhoto;
+Matrix tv2wld;
+WaveFrontOBJ* TV;
 
+GLuint ScreenTexture;
 
 int frame = 0;
 int width, height;
@@ -62,6 +68,7 @@ bool direc = false; //direction light on/off
 bool spot = false; //spot light on/off
 
 bool shademodel = false;
+bool tvon = false;
 
 //------------------------------------------------------------------------------
 void munge(int x, float& r, float& g, float& b)
@@ -131,7 +138,33 @@ void drawAxis(float len)
 }
 
 
+void TVon() {
+	if (tvon) {
+		glGenTextures(1, &ScreenTexture);
+		glReadBuffer(GL_FRONT);
+		glBindTexture(GL_TEXTURE_2D, ScreenTexture);
+		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+		glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, width, height, 0);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
+		// Drawing the saved screen texture back to the screen:
+		glBindTexture(GL_TEXTURE_2D, ScreenTexture);
+		glEnable(GL_TEXTURE_2D);
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0);
+		glVertex3f(-51.68, 44.126, -34.625);
+		glTexCoord2f(1, 0);
+		glVertex3f(-51.68, 44.126, 18.039);
+		glTexCoord2f(1, 1);
+		glVertex3f(-51.68, 73.052, 18.039);
+		glTexCoord2f(0, 1);
+		glVertex3f(-51.68, 73.052, -34.039);
+		glEnd();
+	}
+}
 
 
 void InitCamera(){
@@ -280,46 +313,169 @@ void moveWatch(float rot_x, float rot_y) {
 	glutPostRedisplay();
 }
 
-void InitPlant () {
-	plt = new WaveFrontOBJ("plant_final.obj");
+void InitTV() {
+	TV = new WaveFrontOBJ("tv.obj");
 
 	glPushMatrix();											// Push the current matrix of GL into stack.
 	glLoadIdentity();										// Set the GL matrix Identity matrix.
 	glTranslatef(0, 0, 0);					// Set the location of cow.
 											// Set the direction of cow. These information are stored in the matrix of GL.
-	glGetFloatv(GL_MODELVIEW_MATRIX, plt2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
+	glGetFloatv(GL_MODELVIEW_MATRIX, tv2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
 	glPopMatrix();											// Pop the matrix on stack to GL.
 
 }
 
-void drawPlant()
+void drawTV()
 {
 	glPushMatrix();											// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
 															// The information about location of cow to be drawn is stored in cow2wld matrix.
 															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
-	glMultMatrixf(plt2wld.matrix());
+	glMultMatrixf(tv2wld.matrix());
 
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
 		drawAxis(5);										// Draw x, y, and z axis.
+		glEnable(GL_TEXTURE_2D);
 	}
 	else
 	{
 		float r, g, b;
 		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
+		glDisable(GL_TEXTURE_2D);
 		munge(34, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
 		glColor3f(r, g, b);
 	}
-	plt->Draw();
-	/*******************************************************************/
-	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
-	/*******************************************************************/
-	//ctn->Draw_FN();
-	//ctn->Draw_VN();
+	glBindTexture(GL_TEXTURE_2D, tvPhoto);
+
+	TV->Draw();
+
 	glDisable(GL_TEXTURE_2D);
 
 	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
 }
+void InitPlant1() {
+	plt1 = new WaveFrontOBJ("plant1.obj");
+
+	glPushMatrix();											// Push the current matrix of GL into stack.
+	glLoadIdentity();										// Set the GL matrix Identity matrix.
+	glTranslatef(0, 0, 0);					// Set the location of cow.
+											// Set the direction of cow. These information are stored in the matrix of GL.
+	glGetFloatv(GL_MODELVIEW_MATRIX, plt12wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
+	glPopMatrix();											// Pop the matrix on stack to GL.
+
+}
+
+void drawPlant1()
+{
+	glPushMatrix();											// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
+															// The information about location of cow to be drawn is stored in cow2wld matrix.
+															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
+	glMultMatrixf(plt12wld.matrix());
+
+	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
+	{
+		drawAxis(5);										// Draw x, y, and z axis.
+		glEnable(GL_TEXTURE_2D);
+	}
+	else
+	{
+		float r, g, b;
+		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
+		glDisable(GL_TEXTURE_2D);
+		munge(34, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
+		glColor3f(r, g, b);
+	}
+	glBindTexture(GL_TEXTURE_2D, plt1Photo);
+
+	plt1->Draw();
+	
+	glDisable(GL_TEXTURE_2D);
+
+	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
+}
+
+void InitPlant2() {
+	plt2 = new WaveFrontOBJ("plant2.obj");
+
+	glPushMatrix();											// Push the current matrix of GL into stack.
+	glLoadIdentity();										// Set the GL matrix Identity matrix.
+	glTranslatef(0, 0, 0);					// Set the location of cow.
+											// Set the direction of cow. These information are stored in the matrix of GL.
+	glGetFloatv(GL_MODELVIEW_MATRIX, plt22wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
+	glPopMatrix();											// Pop the matrix on stack to GL.
+
+}
+
+void drawPlant2()
+{
+	glPushMatrix();											// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
+															// The information about location of cow to be drawn is stored in cow2wld matrix.
+															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
+	glMultMatrixf(plt22wld.matrix());
+
+	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
+	{
+		drawAxis(5);										// Draw x, y, and z axis.
+		glEnable(GL_TEXTURE_2D);
+	}
+	else
+	{
+		float r, g, b;
+		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
+		glDisable(GL_TEXTURE_2D);
+		munge(34, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
+		glColor3f(r, g, b);
+	}
+	glBindTexture(GL_TEXTURE_2D, plt2Photo);
+
+	plt2->Draw();
+
+	glDisable(GL_TEXTURE_2D);
+
+	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
+}
+
+void InitPlant3() {
+	plt3 = new WaveFrontOBJ("plant3.obj");
+
+	glPushMatrix();											// Push the current matrix of GL into stack.
+	glLoadIdentity();										// Set the GL matrix Identity matrix.
+	glTranslatef(0, 0, 0);					// Set the location of cow.
+											// Set the direction of cow. These information are stored in the matrix of GL.
+	glGetFloatv(GL_MODELVIEW_MATRIX, plt32wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
+	glPopMatrix();											// Pop the matrix on stack to GL.
+
+}
+
+void drawPlant3()
+{
+	glPushMatrix();											// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
+															// The information about location of cow to be drawn is stored in cow2wld matrix.
+															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
+	glMultMatrixf(plt32wld.matrix());
+
+	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
+	{
+		drawAxis(5);										// Draw x, y, and z axis.
+		glEnable(GL_TEXTURE_2D);
+	}
+	else
+	{
+		float r, g, b;
+		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
+		glDisable(GL_TEXTURE_2D);
+		munge(34, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
+		glColor3f(r, g, b);
+	}
+	glBindTexture(GL_TEXTURE_2D, plt3Photo);
+
+	plt3->Draw();
+
+	glDisable(GL_TEXTURE_2D);
+
+	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
+}
+
 void InitBong() {
 	bong = new WaveFrontOBJ("bong_final.obj");
 
@@ -346,7 +502,7 @@ void drawBong()
 	{
 		float r, g, b;
 		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
-		munge(34, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
+		munge(31, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
 		glColor3f(r, g, b);
 	}
 	bong->Draw();
@@ -354,6 +510,51 @@ void drawBong()
 	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
 	/*******************************************************************/
 
+	glDisable(GL_TEXTURE_2D);
+
+	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
+}
+
+void InitMoon() {
+	moon = new WaveFrontOBJ("moon.obj");
+
+	glPushMatrix();											// Push the current matrix of GL into stack.
+	glLoadIdentity();										// Set the GL matrix Identity matrix.
+	//glTranslatef(0, 0, 0);					// Set the location of cow.
+											// Set the direction of cow. These information are stored in the matrix of GL.
+	glGetFloatv(GL_MODELVIEW_MATRIX, moon2wld.matrix());		// Read the modelview matrix about location and direction set above, and store it in cow2wld matrix.
+	glPopMatrix();											// Pop the matrix on stack to GL.
+
+}
+
+void drawMoon()
+{
+	glPushMatrix();											// Push the current matrix of GL into stack. This is because the matrix of GL will be change while drawing cow.
+															// The information about location of cow to be drawn is stored in cow2wld matrix.
+															// If you change the value of the cow2wld matrix or the current matrix, cow would rotate or move.
+	glMultMatrixf(moon2wld.matrix());
+
+	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
+	{
+		drawAxis(5);										// Draw x, y, and z axis.
+		glEnable(GL_TEXTURE_2D);
+	}
+	else
+	{
+		float r, g, b;
+		glDisable(GL_LIGHTING);								// Disable lighting in backbuffer mode.
+		glDisable(GL_TEXTURE_2D);
+		munge(34, r, g, b);									// Match the corresponding constant color to r, g, b. You can change the color of camera on backbuffer
+		glColor3f(r, g, b);
+	}
+	glBindTexture(GL_TEXTURE_2D, MoonPhoto);
+
+	moon->Draw();
+	/*******************************************************************/
+	//(PA #4) : cow object의 normal을 그리는 함수를 추가하십시오.
+	/*******************************************************************/
+	//ctn->Draw_FN();
+	//ctn->Draw_VN();
 	glDisable(GL_TEXTURE_2D);
 
 	glPopMatrix();											// Pop the matrix in stack to GL. Change it the matrix before drawing cow.
@@ -457,6 +658,7 @@ void InitCtn() {
 	cloth->iteration_n = 10;
 
 	cloth->init(ctn);
+	
 	glPushMatrix();											// Push the current matrix of GL into stack.
 	glLoadIdentity();										// Set the GL matrix Identity matrix.
 	//glTranslatef(-ctn->bbmax.pos.x, 0, ctn->bbmax.pos.z);					// Set the location of cow.
@@ -478,6 +680,10 @@ void drawCtn()
 		ctn->faces[i].normal = ctn->faceNormal(ctn->verts[ctn->vIndex[ctn->faces[i].vIndexStart]], ctn->verts[ctn->vIndex[ctn->faces[i].vIndexStart + 1]], ctn->verts[ctn->vIndex[ctn->faces[i].vIndexStart + 2]]);
 	}
 	ctn->vertexNormal();
+	ctn->computeBoundingBox();
+	cloth2->ctnbbmax = ctn->bbmax;
+	cloth2->ctnbbmin = ctn->bbmin;
+
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
 		drawAxis(5);										// Draw x, y, and z axis.
@@ -509,11 +715,15 @@ void InitCtn2() {
 	cloth2 = new mass_cloth();
 
 	cloth2->dist_coef = 100;
-	cloth2->shear_coef = 100;
+	cloth2->shear_coef = 500;
 
-	cloth2->iteration_n = 6;
+	cloth2->iteration_n = 10;
 
 	cloth2->init(ctn2);
+	cloth->ctnbbmax = ctn2->bbmax;
+	cloth->ctnbbmin = ctn2->bbmin;
+	cloth2->ctnbbmax = ctn->bbmax;
+	cloth2->ctnbbmin = ctn->bbmin;
 	glPushMatrix();											// Push the current matrix of GL into stack.
 	glLoadIdentity();										// Set the GL matrix Identity matrix.
 	//glTranslatef(ctn2->bbmax.pos.x, 0, -ctn2->bbmax.pos.z);					// Set the location of cow.
@@ -535,6 +745,10 @@ void drawCtn2()
 		ctn2->faces[i].normal = ctn2->faceNormal(ctn2->verts[ctn2->vIndex[ctn2->faces[i].vIndexStart]], ctn2->verts[ctn2->vIndex[ctn2->faces[i].vIndexStart + 1]], ctn2->verts[ctn2->vIndex[ctn2->faces[i].vIndexStart + 2]]);
 	}
 	ctn2->vertexNormal();
+	ctn2->computeBoundingBox();
+	cloth->ctnbbmax = ctn2->bbmax;
+	cloth->ctnbbmin = ctn2->bbmin;
+
 	if (selectMode == 0)									// selectMode == 1 means backbuffer mode.
 	{
 		drawAxis(5);										// Draw x, y, and z axis.
@@ -570,17 +784,20 @@ void Lighting()
 	//3. Directional light / Spotlight의 경우 빛의 진행방향을 선분으로 표현하십시오.
 	/*******************************************************************/
 	if (point) { // red color point light
-		float light_pos[] = { 10.0, 10.0, -10.0, 1.0 }; // point light position
-		float light_ambient[] = { 0.3, 0.0, 0.0, 1.0 }; // point light ambient
-		float light_diffuse[] = { 0.5, 0.0, 0.0, 1.0 }; // point light diffuse
-		float light_specular[] = { 1.0, 0.0, 0.0, 1.0 }; // point light specular
+		float light_pos[] = { 0.0, 97.0, -0.5, 1.0 }; // point light position
+		float light_ambient[] = { 0.3, 0.3, 0.3, 1.0 }; // point light ambient
+		float light_diffuse[] = { 0.5, 0.5, 0.5, 1.0 }; // point light diffuse
+		float light_specular[] = { 1.0, 1.0, 1.0, 1.0 }; // point light specular
 		glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
 		glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
 		glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
 		glLightfv(GL_LIGHT1, GL_POSITION, light_pos);
+		glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 0.8);// set attenuation as linear
+		//glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.1);
+		//glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 1.0);
 		glEnable(GL_LIGHT1); // on point light
 		glPushMatrix();
-		float emission[] = { 1.0, 0.0, 0.0, 1.0 };// sphere emission
+		float emission[] = { 1.0, 1.0, 1.0, 1.0 };// sphere emission
 		float emission2[] = { 0.0, 0.0, 0.0, 0.0 };// emission 초기화용 배열
 		glMaterialfv(GL_FRONT, GL_EMISSION, emission); // sphere emission setting
 		glTranslatef(light_pos[0], light_pos[1], light_pos[2]);
@@ -593,30 +810,20 @@ void Lighting()
 		glDisable(GL_LIGHT1);// point light off
 	}
 	if (direc) {
-		float light_pos[] = { -10.0, 10.0, -10.0, 0.0 };// directional light position
-		float light_dir[] = { -1.0, 1.0, -1.0 }; //directional light direction
-		float light_ambient[] = { 0.3, 0.3, 0.2, 1.0 };// directional light ambient
-		float light_diffuse[] = { 0.5, 0.5, 0.3, 1.0 };// directional light diffuse
-		float light_specular[] = { 1.0, 1.0, 0.5, 1.0 };// directional light specular
+		float light_pos[] = { 2.112, 73.223, 115.538, 0.0 };// directional light position
+		float light_dir[] = { -2.112, -73.223, -115.538 }; //directional light direction
+		float light_ambient[] = { 0.6, 0.6, 0.3, 1.0 };// directional light ambient
+		float light_diffuse[] = { 0.2, 0.2, 0.1, 1.0 };// directional light diffuse
+		float light_specular[] = { 0.1, 0.1, 0.05, 1.0 };// directional light specular
 		glLightfv(GL_LIGHT2, GL_AMBIENT, light_ambient); //setting light
 		glLightfv(GL_LIGHT2, GL_DIFFUSE, light_diffuse);
 		glLightfv(GL_LIGHT2, GL_SPECULAR, light_specular);
 		glLightfv(GL_LIGHT2, GL_POSITION, light_pos);
 		glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, light_dir);
+		glLightf(GL_LIGHT2, GL_CONSTANT_ATTENUATION, 1.0);// set attenuation as linear
+		glLightf(GL_LIGHT2, GL_LINEAR_ATTENUATION, 1.0);
+		glLightf(GL_LIGHT2, GL_QUADRATIC_ATTENUATION, 2.0);
 		glEnable(GL_LIGHT2); // enable directional light
-		glPushMatrix();
-		float emission[] = { 0.0, 1.0, 0.0, 1.0 };
-		float emission2[] = { 0.0, 0.0, 0.0, 0.0 };
-		glMaterialfv(GL_FRONT, GL_EMISSION, emission);
-		glTranslatef(light_pos[0], light_pos[1], light_pos[2]);
-		glutSolidSphere(1.0, 5, 5);
-		glMaterialfv(GL_FRONT, GL_EMISSION, emission2);
-		glBegin(GL_LINES);			// Start drawing lines.
-		glColor3d(0, 1, 0);			// line color is red.
-		glVertex3d(0, 0, 0);
-		glVertex3d(-2.0*light_dir[0], -2.0*light_dir[1], -2.0*light_dir[2]);
-		glEnd();
-		glPopMatrix();
 	}
 	else {
 		glDisable(GL_LIGHT2);//directional light off
@@ -679,14 +886,22 @@ void display()
 
 	moveCam();
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	drawSky();
+	//drawSky();
+
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+	drawSky();
 	drawRoom();
+	drawMoon();
 	drawCtn();
 	drawCtn2();
-	//drawPlant();
+	drawPlant1();
+	drawPlant2();
+	drawPlant3();
 	drawBong();
+	drawTV();
 	Lighting();
+	TVon();
+
 
 	glFlush();
 
@@ -732,26 +947,43 @@ void initialize()
 	// Initialize the matrix stacks
 	reshape(width, height);
 	// Define lighting for the scene
-	float light_pos[] = { 1.0, 1.0, 1.0, 0.0 };
-	float light_ambient[] = { 0.1, 0.1, 0.1, 1.0 };
-	float light_diffuse[] = { 0.9, 0.9, 0.9, 1.0 };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	float light_pos[] = { 2.112, 73.223, 115.538, 0.0 };// directional light position
+	float light_dir[] = { -2.112, -73.223, -115.538 }; //directional light direction
+	float light_ambient[] = { 0.6, 0.6, 0.3, 1.0 };// directional light ambient
+	float light_diffuse[] = { 0.5, 0.5, 0.25, 1.0 };// directional light diffuse
+	float light_specular[] = { 0.3, 0.3, 0.15, 1.0 };// directional light specular
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient); //setting light
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
-	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_dir);
+	glLightf(GL_LIGHT0, GL_CONSTANT_ATTENUATION, 1.0);// set attenuation as linear
+	glLightf(GL_LIGHT0, GL_LINEAR_ATTENUATION, 1.0);
+	glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 2.0);
+	glEnable(GL_LIGHT0); // enable directional light
 	
 	// Texture Mapping
 	photo = LoadTexture("curtain3.png");
-	photo2 = LoadTexture("curtain.png");
+	photo2 = LoadTexture("curtain3.png");
 	RoomPhoto = LoadTexture("room.png");
 	SkyPhoto = LoadTexture("nightsky.PNG");
+	MoonPhoto = LoadTexture("moon.jpg");
+	plt1Photo = LoadTexture("plant1.png");
+	plt2Photo = LoadTexture("plant2.png");
+	plt3Photo = LoadTexture("plant3.png");
+	tvPhoto = LoadTexture("tv.png");
+
 
 	InitSky();
 	InitRoom();
 	InitCtn();
 	InitCtn2();
-	//InitPlant();
+	InitMoon();
+	InitPlant1();
+	InitPlant2();
+	InitPlant3();
 	InitBong();
+	InitTV();
 	InitCamera();
 
 }
@@ -784,7 +1016,8 @@ void onMouseButton(int button, int state, int x, int y)
 			printf("pixel = %d\n", pixel_value);
 
 			if (picking) {
-				if (pixel_value == 32) current_obj = 0;
+				if (pixel_value == 31) current_obj = -1;
+				else if (pixel_value == 32) current_obj = 0;
 				else if (pixel_value == 33) current_obj = 1;
 				else {
 					current_obj = 2;
@@ -818,7 +1051,7 @@ void onMouseDrag(int x, int y)
 		cloth2->add_force(Vector(move[0], move[1], move[2]));
 	}
 	if (current_obj == 2) {
-		moveWatch(moveX * 0.0001, moveY * 0.0001);
+		moveWatch(moveX * 0.0005, moveY * 0.0005);
 	}
 	printf("in drag (%d, %d)\n", x - oldX, y - oldY);
 	oldX = x;
@@ -847,6 +1080,9 @@ void onKeyPress(unsigned char key, int x, int y)
 	if (key == 'p') { //picking 상태 on
 		picking = true;
 	}
+	if (key == 't') {
+		tvon = !tvon;
+	}
 
 	glutPostRedisplay();
 }
@@ -859,19 +1095,19 @@ void SpecialKey(int key, int x, int y)
 	switch (key) { //만약 각각의 light가 on에서 off 되는 상황이라면 해당 light를 disable해주어야 한다.
 	case GLUT_KEY_F1:	if (point) {
 							point = !point;
-							glDisable(GL_LIGHT1);
+							//glDisable(GL_LIGHT1);
 						}
 						else point = !point; 
 						break;
 	case GLUT_KEY_F2:	if (direc) {
 							direc = !direc;
-							glDisable(GL_LIGHT2);
+							//glDisable(GL_LIGHT2);
 						}
 						else direc = !direc; 
 						break;
 	case GLUT_KEY_F3:	if (spot) {
 							spot = !spot;
-							glDisable(GL_LIGHT3);
+							//glDisable(GL_LIGHT3);
 						}
 						else spot = !spot; 
 						break;

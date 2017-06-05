@@ -182,7 +182,8 @@ public:
 
 
 	double		reflect_coef;
-	double		minx = -67.043, miny = 0.5, minz = -68.043, maxx = 67.043, maxy = 99.774, maxz = 67.043;
+	double		minx = -67.04, miny = 0.5, minz = -67.04, maxx = 67.04, maxy = 99.77, maxz = 67.04;
+	Vertex		ctnbbmin, ctnbbmax;
 	mass_cloth()
 	{
 		
@@ -317,6 +318,11 @@ public:
 			{
 				p[i]->position.z = maxz;
 				p[i]->velocity.z *= -reflect_coef;
+			}
+			if (p[i]->position.x < ctnbbmax.pos.x && p[i]->position.x > ctnbbmin.pos.x && p[i]->position.y < ctnbbmax.pos.y && p[i]->position.y > ctnbbmin.pos.y && p[i]->position.z < ctnbbmax.pos.z && p[i]->position.z > ctnbbmin.pos.z) {
+				p[i]->velocity.x *= -1.1;
+				p[i]->velocity.y *= -1.1;
+				p[i]->velocity.z *= -1.1;
 			}
 		}
 	}
