@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <Windows.h>
 #include <stdlib.h>
 #include <math.h>
 #include <sys/types.h>
@@ -11,12 +10,15 @@
 #include "Matrix.h"
 #include "WaveFrontOBJ.h"
 #include "particle.h"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include<algorithm>
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4352909dc06d9e6cbbc55ec712f97b6f66dc47fb
 // edited
 struct list1 {
 	float pos;
@@ -1052,6 +1054,24 @@ void initialize()
 	sort(spreadCtnLoc1, spreadCtnLoc1 + cloth->fp.size(), list1());
 	sort(spreadCtnLoc2, spreadCtnLoc2 + cloth2->fp.size(), list2());
 
+<<<<<<< HEAD
+=======
+	// edited
+	// ctn 1 : ¿À¸¥ÂÊ
+	// ctn 2 : ¿ÞÂÊ
+	for (int i = 0; i < cloth->fp.size(); i++)
+	{
+		spreadCtnLoc1[i].id = i;
+		spreadCtnLoc1[i].pos = cloth->fp[i]->position.x;
+	}
+	for (int i = 0; i < cloth2->fp.size(); i++) {
+		spreadCtnLoc2[i].id = i;
+		spreadCtnLoc2[i].pos = cloth2->fp[i]->position.x;
+	}
+	sort(spreadCtnLoc1, spreadCtnLoc1 + cloth->fp.size(), list1());
+	sort(spreadCtnLoc2, spreadCtnLoc2 + cloth2->fp.size(), list2());
+
+>>>>>>> 4352909dc06d9e6cbbc55ec712f97b6f66dc47fb
 	for (int i = 0; i < cloth->fp.size(); i++) {
 		foldCtnLoc1[i].id = spreadCtnLoc1[i].id;
 		foldCtnLoc1[i].pos = spreadCtnLoc1[0].pos - 1 - i;

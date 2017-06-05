@@ -1,0 +1,26 @@
+﻿  source.cpp
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\particle.h(212): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\particle.h(227): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\particle.h(236): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\particle.h(251): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\particle.h(259): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\particle.h(268): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\particle.h(274): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\particle.h(279): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\samsung\desktop\대학\3학년 1학기\컴퓨터그래픽스(김창헌)\cgtermproject\practicecg\practicecg\practicecg\particle.h(289): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+source.cpp(162): error C3861: 'GetAsyncKeyState': 식별자를 찾을 수 없습니다.
+source.cpp(168): error C3861: 'GetAsyncKeyState': 식별자를 찾을 수 없습니다.
+source.cpp(174): error C3861: 'GetAsyncKeyState': 식별자를 찾을 수 없습니다.
+source.cpp(180): error C3861: 'GetAsyncKeyState': 식별자를 찾을 수 없습니다.
+source.cpp(186): error C3861: 'GetAsyncKeyState': 식별자를 찾을 수 없습니다.
+source.cpp(192): error C3861: 'GetAsyncKeyState': 식별자를 찾을 수 없습니다.
+source.cpp(478): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+source.cpp(535): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+source.cpp(575): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+source.cpp(599): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+source.cpp(600): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+source.cpp(737): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+source.cpp(738): warning C4838: 'double'에서 'float'(으)로의 변환에는 축소 변환이 필요합니다.
+  WaveFrontOBJ.cpp
+WaveFrontOBJ.cpp(2): warning C4005: '_CRT_SECURE_NO_WARNINGS': 매크로 재정의
+  WaveFrontOBJ.cpp(2): note: 명령줄 인수: '_CRT_SECURE_NO_WARNINGS'의 이전 정의를 참조하십시오.
