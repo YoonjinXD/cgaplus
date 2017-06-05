@@ -14,6 +14,28 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include<algorithm>
+
+
+// edited
+struct list1 {
+	float pos;
+	int id;
+	bool operator()(list1 p, list1 q) {
+		if (p.pos - q.pos < 0)return false;
+		return true;
+	}
+}foldCtnLoc1[15], spreadCtnLoc1[15];
+
+struct list2 {
+	float pos;
+	int id;
+	bool operator()(list2 p, list2 q) {
+		if (p.pos - q.pos > 0)return false;
+		return true;
+	}
+}foldCtnLoc2[15], spreadCtnLoc2[15];
+
 
 
 #define L 100
@@ -137,6 +159,36 @@ void drawAxis(float len)
 	glEnable(GL_LIGHTING);
 }
 
+void moveCtn() {
+	if (GetAsyncKeyState('O')) {
+		for (int i = 0; i < cloth->fp.size(); i++)
+		{
+			if (cloth->fp[foldCtnLoc1[i].id]->position.x <= foldCtnLoc1[i].pos) {
+				cloth->fp[foldCtnLoc1[i].id]->position.x += 1;
+			}
+		}
+		for (int i = 0; i < cloth2->fp.size(); i++)
+		{
+			if (cloth2->fp[foldCtnLoc2[i].id]->position.x >= foldCtnLoc2[i].pos) {
+				cloth2->fp[foldCtnLoc2[i].id]->position.x -= 1;
+			}
+		}
+	}
+	else if (GetAsyncKeyState('C')) {
+		for (int i = 0; i < cloth->fp.size(); i++)
+		{
+			if (cloth->fp[spreadCtnLoc1[i].id]->position.x >= spreadCtnLoc1[i].pos) {
+				cloth->fp[spreadCtnLoc1[i].id]->position.x -= 1;
+			}
+		}
+		for (int i = 0; i < cloth2->fp.size(); i++)
+		{
+			if (cloth2->fp[spreadCtnLoc2[i].id]->position.x <= spreadCtnLoc2[i].pos) {
+				cloth2->fp[spreadCtnLoc2[i].id]->position.x += 1;
+			}
+		}
+	}
+}
 
 void TVon() {
 	if (tvon) {
@@ -885,6 +937,7 @@ void display()
 		glShadeModel(GL_SMOOTH);
 
 	moveCam();
+	moveCtn();
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 	//drawSky();
 
@@ -985,7 +1038,28 @@ void initialize()
 	InitBong();
 	InitTV();
 	InitCamera();
+	// edited
+	
+	for (int i = 0; i < cloth->fp.size(); i++)
+	{
+		spreadCtnLoc1[i].id = i;
+		spreadCtnLoc1[i].pos = cloth->fp[i]->position.x;
+	}
+	for (int i = 0; i < cloth2->fp.size(); i++) {
+		spreadCtnLoc2[i].id = i;
+		spreadCtnLoc2[i].pos = cloth2->fp[i]->position.x;
+	}
+	sort(spreadCtnLoc1, spreadCtnLoc1 + cloth->fp.size(), list1());
+	sort(spreadCtnLoc2, spreadCtnLoc2 + cloth2->fp.size(), list2());
 
+	for (int i = 0; i < cloth->fp.size(); i++) {
+		foldCtnLoc1[i].id = spreadCtnLoc1[i].id;
+		foldCtnLoc1[i].pos = spreadCtnLoc1[0].pos - 1 - i;
+	}
+	for (int i = 0; i < cloth2->fp.size(); i++) {
+		foldCtnLoc2[i].id = spreadCtnLoc2[i].id;
+		foldCtnLoc2[i].pos = spreadCtnLoc2[0].pos + 1 + i;
+	}
 }
 
 
